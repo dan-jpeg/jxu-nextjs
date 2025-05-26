@@ -3,8 +3,7 @@ import "./globals.css";
 
 
 export const metadata: Metadata = {
-    title: 'Jing Yi Xu Portfolio',
-    description: 'Archive and works of Jing Yi Xu',
+    title: 'office of jing yi xu',
 };
 
 
