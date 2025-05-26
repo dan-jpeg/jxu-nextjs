@@ -1,25 +1,26 @@
-"use client";
+"use client"
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import ImageCycler from "@/components/ImageCycler";
 import ThreeColumnLayout from "@/components/ThreeColumnLayout";
 import { imageCyclerImages } from "@/data/images";
 
 const Bonjour: React.FC = () => {
-    useEffect(() => {
-        // Disable scroll
-        const originalOverflow = document.body.style.overflow;
-        document.body.style.overflow = "hidden";
+    const [scrollLock, setScrollLock] = useState(false);
 
-        // Cleanup on unmount (re-enable scroll)
+    useEffect(() => {
+        // Add class to lock scroll
+        document.body.classList.add("scroll-locked");
+
+        // Unlock on unmount
         return () => {
-            document.body.style.overflow = originalOverflow;
+            document.body.classList.remove("scroll-locked");
         };
     }, []);
 
     return (
-        <div className="h-screen w-full bg-white flex items-center justify-center overflow-hidden flex-col">
-            <div className="flex mx-4 h-[60vh] max-w-screen-md w-full mb-4">
+        <div className="h-screen w-full bg-white flex items-center justify-center flex-col">
+            <div className="flex mx-4 h-[55vh]  max-w-screen-md w-full mb-4">
                 <ImageCycler images={imageCyclerImages} interval={1424} />
             </div>
             <ThreeColumnLayout />
