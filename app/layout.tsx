@@ -4,8 +4,10 @@ import "./globals.css";
 
 export const metadata: Metadata = {
     title: 'office of jing yi xu',
+    icons: {
+        icon: '/icon.png',
+    }
 };
-
 
 import localFont from 'next/font/local';
 
