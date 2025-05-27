@@ -52,7 +52,7 @@ const ImageColumn = () => {
             {!selected && <FixedNavbar onArchiveClick={handleArchiveClick} />}
 
             <div className="flex flex-col items-center gap-4 pb-20 px-6 max-w-3xl mx-auto">
-                <div className="h-[44vh] opacity-0"></div>
+                <div className="h-[50vh] opacity-0"></div>
                 {archiveImages.map((src) => (
 
                     <ClickableImage
