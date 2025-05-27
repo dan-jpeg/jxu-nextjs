@@ -7,7 +7,7 @@ const FixedNavbar: React.FC<FixedNavbarProps> = ({ onArchiveClick }) => {
         <div className="fixed top-1/2 left-0 font-[400] w-full transform -translate-y-1/2 z-50 px-[16px]">
             <div className="relative w-full flex justify-center items-center text-xs  uppercase">
 
-                <a  href="/"  className="absolute hover:opacity-20 tracking-wider cursor-w-resize left-2">
+                <a  href="/"  className="absolute hover:opacity-20 text-black tracking-wider cursor-w-resize left-2">
                     jing yi xu
                 </a>
 
