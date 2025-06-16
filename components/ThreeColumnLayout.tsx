@@ -41,7 +41,7 @@ const ThreeColumnLayout: React.FC = () => {
                 <div className="text-right">
                     <button
                         onClick={handleCopyEmail}
-                        className={` ${copied ? 'italic' : '' } text-neutral-700 font-normal text-xs hover:italic hover:text-neutral-300 focus:outline-none`}
+                        className={` ${copied ? 'italic' : '' } text-neutral-700 font-normal text-xs hover:italic hover:text-neutral-300 cursor-context-menu focus:outline-none`}
                     >
                         {copied ? 'email has been copied to clipboard' : 'mail'}
                     </button>

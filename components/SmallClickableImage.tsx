@@ -30,7 +30,8 @@ const SmallClickableImage: React.FC<Props> = ({
                 className={`w-full h-auto object-cover cursor-pointer ${
                     isSelected ? 'invisible' : ''
                 }`}
-                transition={{ type: "linear" }}
+                // transition={{ type: "linear" }}
+                transition={{ type: "spring", bounce: 0, duration: 0.5 }}
             />
 
             {/* Fullscreen overlay */}
@@ -52,7 +53,8 @@ const SmallClickableImage: React.FC<Props> = ({
                                 maxWidth,
                                 maxHeight,
                             }}
-                            transition={{ type: "linear" }}
+                            // transition={{ type: "linear" }}
+                            transition={{ type: "spring", bounce: 0, duration: 0.6 }}
                         />
                     </motion.div>
                 )}
