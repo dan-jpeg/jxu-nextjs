@@ -9,6 +9,7 @@ interface Props {
     maxHeight?: string;
     isSelected?: boolean;
     isOtherSelected?: boolean;
+    onClick?: () => void;
 }
 
 const SmallClickableImage: React.FC<Props> = ({
