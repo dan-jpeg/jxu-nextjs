@@ -7,12 +7,14 @@ interface Props {
     src: string;
     maxWidth?: string;
     maxHeight?: string;
+    isSelected?: boolean;
+    isOtherSelected?: boolean;
 }
 
 const SmallClickableImage: React.FC<Props> = ({
                                                   src,
-                                                  maxWidth = "100vw",
-                                                  maxHeight = "100vh",
+                                                  maxWidth = "90vw",
+                                                  maxHeight = "90vh",
                                               }) => {
     const [isSelected, setIsSelected] = useState(false);
 
@@ -34,7 +36,7 @@ const SmallClickableImage: React.FC<Props> = ({
             <AnimatePresence>
                 {isSelected && (
                     <motion.div
-                        className="fixed inset-0 z-50 bg-white flex items-center justify-center cursor-pointer"
+                        className="fixed inset-0 z-50 bg-transparent flex items-center justify-center cursor-pointer"
                         onClick={() => setIsSelected(false)}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
