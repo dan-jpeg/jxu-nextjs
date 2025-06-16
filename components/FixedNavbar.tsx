@@ -21,10 +21,7 @@ const FixedNavbar: React.FC<FixedNavbarProps> = ({ onArchiveClick }) => {
                 </button>
 
                 <div className="absolute right-2 flex  opacity-0 gap-4">
-                    <a href="mailto:jinnix24@gmail.com" className="hover:italic">Email</a>
-                    <a href="https://www.instagram.com/jingyix_" target="_blank" rel="noreferrer" className="hover:italic">
-                        Instagram
-                    </a>
+                 <p> </p>
                 </div>
 
             </div>
