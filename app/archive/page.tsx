@@ -2,11 +2,12 @@
 
 import FixedNavbar from "@/components/FixedNavbar";
 import ImageColumn from "@/components/ImageColumn";
+import FourColumnImageFeed from "@/components/FourColumnImageFeed";
 
 const ArchivePage = () => {
     return (
         <div id="top" className="relative bg-white min-h-screen">
-            <ImageColumn />
+            <FourColumnImageFeed  />
         </div>
     );
 };

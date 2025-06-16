@@ -13,7 +13,9 @@ const FixedNavbar: React.FC<FixedNavbarProps> = ({ onArchiveClick }) => {
 
                 <button
                     onClick={onArchiveClick}
-                    className="hover:italic uppercase  hover:opacity-0 cursor-n-resize text-white"
+                    className="hover:italic uppercase  hover:opacity-0 cursor-n-resize text-black opacity-80 "
+
+                    // style={{ backgroundColor: '#B4D7FF' }}
                 >
                     Archive
                 </button>

@@ -37,14 +37,14 @@ export const imageCyclerImages = [
     "https://edie-xu-portfolio.s3.us-east-2.amazonaws.com/photos/jxu/Adesign5.jpeg",
     "https://edie-xu-portfolio.s3.us-east-2.amazonaws.com/photos/jxu/Adesign3.jpeg",
     "https://edie-xu-portfolio.s3.us-east-2.amazonaws.com/photos/jxu/Adesign4.jpeg",
-    "https://firebasestorage.googleapis.com/v0/b/common-base-d538e.firebasestorage.app/o/jxu-red-chair-dress-00002.JPG?alt=media&token=323d72bc-8c40-489a-a57c-4941cfc1aaf7",
-    "https://firebasestorage.googleapis.com/v0/b/common-base-d538e.firebasestorage.app/o/jxu-red-chair-dress-00003.JPG?alt=media&token=47f76055-23b8-456b-a5e0-4a1415ff631e",
+    // "https://firebasestorage.googleapis.com/v0/b/common-base-d538e.firebasestorage.app/o/jxu-red-chair-dress-00002.JPG?alt=media&token=323d72bc-8c40-489a-a57c-4941cfc1aaf7",
+    // "https://firebasestorage.googleapis.com/v0/b/common-base-d538e.firebasestorage.app/o/jxu-red-chair-dress-00003.JPG?alt=media&token=47f76055-23b8-456b-a5e0-4a1415ff631e",
     "https://firebasestorage.googleapis.com/v0/b/common-base-d538e.firebasestorage.app/o/jxu-red-chair-dress-00001.JPG?alt=media&token=68ae3419-b08d-4168-8197-3f5cba497621",
-    "https://firebasestorage.googleapis.com/v0/b/common-base-d538e.firebasestorage.app/o/jxu-pink-chair-dress-00001.JPG?alt=media&token=67311dca-468b-4e16-9b06-c199cf5af724",
-    "https://firebasestorage.googleapis.com/v0/b/common-base-d538e.firebasestorage.app/o/jxu-pink-chair-dress-00003.JPG?alt=media&token=8ab23ce5-cad6-403e-850d-b785013682d4",
+    // "https://firebasestorage.googleapis.com/v0/b/common-base-d538e.firebasestorage.app/o/jxu-pink-chair-dress-00001.JPG?alt=media&token=67311dca-468b-4e16-9b06-c199cf5af724",
+    // "https://firebasestorage.googleapis.com/v0/b/common-base-d538e.firebasestorage.app/o/jxu-pink-chair-dress-00003.JPG?alt=media&token=8ab23ce5-cad6-403e-850d-b785013682d4",
     "https://firebasestorage.googleapis.com/v0/b/common-base-d538e.firebasestorage.app/o/jxu-pink-chair-dress-00002.JPG?alt=media&token=2241aba7-5099-4ef3-9a3e-a463acca69d4",
-    "https://firebasestorage.googleapis.com/v0/b/common-base-d538e.firebasestorage.app/o/jxu-black-chair-dress-00004.JPG?alt=media&token=74d6424c-61f6-44b9-a104-efd3518b09bc",
-    "https://firebasestorage.googleapis.com/v0/b/common-base-d538e.firebasestorage.app/o/jxu-black-chair-dress-00003.JPG?alt=media&token=db830500-97d2-4172-996f-3ee70b399fa9",
-    "https://firebasestorage.googleapis.com/v0/b/common-base-d538e.firebasestorage.app/o/jxu-black-chair-dress-00002.JPG?alt=media&token=25244043-d63f-4fd6-8c02-ff6990b8fa97",
-    "https://firebasestorage.googleapis.com/v0/b/common-base-d538e.firebasestorage.app/o/jxu-black-chair-dress-00001.JPG?alt=media&token=1ecfd768-f259-4baf-b4c9-28cd0c276b22"
+    // "https://firebasestorage.googleapis.com/v0/b/common-base-d538e.firebasestorage.app/o/jxu-black-chair-dress-00004.JPG?alt=media&token=74d6424c-61f6-44b9-a104-efd3518b09bc",
+    // "https://firebasestorage.googleapis.com/v0/b/common-base-d538e.firebasestorage.app/o/jxu-black-chair-dress-00003.JPG?alt=media&token=db830500-97d2-4172-996f-3ee70b399fa9",
+    // "https://firebasestorage.googleapis.com/v0/b/common-base-d538e.firebasestorage.app/o/jxu-black-chair-dress-00002.JPG?alt=media&token=25244043-d63f-4fd6-8c02-ff6990b8fa97",
+    // "https://firebasestorage.googleapis.com/v0/b/common-base-d538e.firebasestorage.app/o/jxu-black-chair-dress-00001.JPG?alt=media&token=1ecfd768-f259-4baf-b4c9-28cd0c276b22"
 ];

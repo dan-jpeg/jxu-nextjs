@@ -20,7 +20,7 @@ const Bonjour: React.FC = () => {
 
     return (
         <div className="h-screen w-full bg-white flex items-center justify-center flex-col">
-            <div className="flex mx-4 h-[55vh]  max-w-screen-md w-full mb-4">
+            <div className="flex mx-4 h-[55vh] lg-[60vh]  max-w-screen-md w-full mb-4">
                 <ImageCycler images={imageCyclerImages} interval={1424} />
             </div>
             <ThreeColumnLayout />
