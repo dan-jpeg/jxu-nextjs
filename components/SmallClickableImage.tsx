@@ -27,7 +27,7 @@ const SmallClickableImage: React.FC<Props> = ({
                 alt=""
                 layoutId={src}
                 onClick={() => setIsSelected(true)}
-                className={`w-full h-auto object-cover cursor-pointer ${
+                className={`w-full h-auto object-cover cursor-zoom-in ${
                     isSelected ? 'invisible' : ''
                 }`}
                 // transition={{ type: "linear" }}
@@ -38,7 +38,7 @@ const SmallClickableImage: React.FC<Props> = ({
             <AnimatePresence>
                 {isSelected && (
                     <motion.div
-                        className="fixed inset-0 z-50 bg-transparent flex items-center justify-center cursor-pointer"
+                        className="fixed inset-0 z-50 bg-transparent flex items-center justify-center cursor-zoom-out "
                         onClick={() => setIsSelected(false)}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}

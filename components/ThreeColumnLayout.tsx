@@ -30,18 +30,16 @@ const ThreeColumnLayout: React.FC = () => {
                 </div>
                 <div className="text-center">
                     <a
-                        href="/jinnixu_apr2025.pdf"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-neutral-700 font-normal text-xs hover:italic hover:text-neutral-300"
+                        href="/archive"
+                        className="hover:line-through cursor-pointer text-neutral-700 font-normal  text-xs hover:italic hover:text-neutral-300"
                     >
-                        information
+                        WORK (selected)
                     </a>
                 </div>
                 <div className="text-right">
                     <button
                         onClick={handleCopyEmail}
-                        className={` ${copied ? 'italic' : '' } text-neutral-700 font-normal text-xs hover:italic hover:text-neutral-300 cursor-context-menu focus:outline-none`}
+                        className={` ${copied ? 'italic' : ''} text-neutral-700 font-normal text-xs hover:italic hover:text-neutral-300 cursor-context-menu focus:outline-none`}
                     >
                         {copied ? 'email has been copied to clipboard' : 'mail'}
                     </button>
@@ -60,12 +58,15 @@ const ThreeColumnLayout: React.FC = () => {
                     </a>
                 </div>
                 <div className="text-center">
-                  <a
-                    href="/archive"
-                    className="hover:line-through cursor-pointer text-neutral-700 font-normal text-xs hover:italic hover:text-neutral-300"
-                  >
-                    Archive
-                  </a>
+                    <a
+                        href="/jinnixu_apr2025.pdf"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-neutral-700 font-normal text-xs hover:italic hover:text-neutral-300"
+                    >
+                        information
+                    </a>
+
                 </div>
                 <div className="text-right">1 347 327 2418</div>
             </div>

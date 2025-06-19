@@ -17,7 +17,7 @@ const FixedNavbar: React.FC<FixedNavbarProps> = ({ onArchiveClick }) => {
 
                     // style={{ backgroundColor: '#B4D7FF' }}
                 >
-                    Archive
+                    WORK
                 </button>
 
                 <div className="absolute right-2 flex  opacity-0 gap-4">
