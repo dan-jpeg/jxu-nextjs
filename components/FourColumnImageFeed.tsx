@@ -39,7 +39,7 @@ const FourColumnImageFeed: React.FC = () => {
     const fadeEndPoint = 0.15;   // Fully faded at 19% scroll (image moves away after this)
 
     // ADJUSTABLE: Where alphabet labels appear for progress pictures
-    const alphabetLabelLocation = 'left' as 'top' | 'left';  // 'top' = above images, 'left' = beside images
+    const alphabetLabelLocation = 'top' as 'top' | 'left';  // 'top' = above images, 'left' = beside images
 
     // Calculate total width needed to scroll through all images
     // Mobile: 80vw per image + 4vw gaps
@@ -230,27 +230,27 @@ const FourColumnImageFeed: React.FC = () => {
         <div className="relative min-h-screen bg-white">
             <FixedNavbar onArchiveClick={handleArchiveClick} />
 
-            {!selectedId ? (
-                // 4-column grid
-                <div className="grid grid-cols-4 gap-12 px-12 pt-20 pb-10 max-w-xl mx-auto">
-                    {columns.map((column, columnIndex) => (
-                        <div key={columnIndex} className="flex flex-col gap-40">
-                            {column.map((image) => (
-                                <motion.img
-                                    key={image.id}
-                                    src={image.url}
-                                    alt=""
-                                    layoutId={image.id}
-                                    onClick={() => handleImageClick(image)}
-                                    className="w-full h-auto object-cover cursor-zoom-in"
-                                    transition={{ type: "spring", bounce: 0, duration: 0.5 }}
-                                />
-                            ))}
-                        </div>
-                    ))}
-                </div>
-            ) : (
-                // Fixed overlay with internal scroll
+            {/* 4-column grid - Always rendered, hidden when selected */}
+            <div className={`grid grid-cols-4 gap-12 px-12 pt-20 pb-10 max-w-xl mx-auto ${selectedId ? 'invisible' : 'visible'}`}>
+                {columns.map((column, columnIndex) => (
+                    <div key={columnIndex} className="flex flex-col gap-40">
+                        {column.map((image) => (
+                            <motion.img
+                                key={image.id}
+                                src={image.url}
+                                alt=""
+                                layoutId={image.id}
+                                onClick={() => handleImageClick(image)}
+                                className="w-full h-auto object-cover cursor-zoom-in"
+                                transition={{ type: "spring", bounce: 0, duration: 0.5 }}
+                            />
+                        ))}
+                    </div>
+                ))}
+            </div>
+
+            {/* Fixed overlay with internal scroll */}
+            {selectedId && (
                 <div className="fixed inset-0 z-50 bg-white">
                     <div ref={scrollContainerRef} className="h-screen overflow-y-auto">
                         {/* Tall content to enable scroll */}
@@ -308,7 +308,7 @@ const FourColumnImageFeed: React.FC = () => {
                                                         >
                                                             {/* Letter label BEFORE image when location is 'left' */}
                                                             {alphabetLabelLocation === 'left' && (
-                                                                <div className="text-xs pl-6 lowercase text-black text-center flex-shrink-0">
+                                                                <div className="text-xs lowercase text-gray-400 text-center flex-shrink-0">
                                                                     {String.fromCharCode(97 + idx)}
                                                                 </div>
                                                             )}
