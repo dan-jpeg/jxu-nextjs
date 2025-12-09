@@ -308,7 +308,7 @@ const FourColumnImageFeed: React.FC = () => {
                                                         >
                                                             {/* Letter label BEFORE image when location is 'left' */}
                                                             {alphabetLabelLocation === 'left' && (
-                                                                <div className="text-xs lowercase text-gray-400 text-center flex-shrink-0">
+                                                                <div className="text-xs pl-6 lowercase text-black text-center flex-shrink-0">
                                                                     {String.fromCharCode(97 + idx)}
                                                                 </div>
                                                             )}
