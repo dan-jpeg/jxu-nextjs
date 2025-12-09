@@ -39,7 +39,7 @@ const FourColumnImageFeed: React.FC = () => {
     const fadeEndPoint = 0.15;   // Fully faded at 19% scroll (image moves away after this)
 
     // ADJUSTABLE: Where alphabet labels appear for progress pictures
-    const alphabetLabelLocation = 'top' as 'top' | 'left';  // 'top' = above images, 'left' = beside images
+    const alphabetLabelLocation = 'left' as 'top' | 'left';  // 'top' = above images, 'left' = beside images
 
     // Calculate total width needed to scroll through all images
     // Mobile: 80vw per image + 4vw gaps
