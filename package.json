@@ -10,7 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "bcryptjs": "^3.0.3",
+    "bcrypt-edge": "^0.1.1",
     "firebase": "^12.6.0",
     "firebase-admin": "^13.6.0",
     "framer-motion": "^12.16.0",

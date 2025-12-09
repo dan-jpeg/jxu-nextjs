@@ -1,6 +1,6 @@
 import type { NextAuthConfig } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
-import bcrypt from 'bcryptjs';
+import { compareSync } from 'bcrypt-edge';
 
 export const authConfig: NextAuthConfig = {
     pages: {
@@ -41,7 +41,7 @@ export const authConfig: NextAuthConfig = {
                 const usernameMatch = credentials.username === adminUsername;
 
                 console.log('🔐 Comparing password...');
-                const passwordMatch = await bcrypt.compare(
+                const passwordMatch = compareSync(
                     credentials.password as string,
                     adminPasswordHash
                 );

@@ -39,7 +39,7 @@ const FourColumnImageFeed: React.FC = () => {
     const fadeEndPoint = 0.15;   // Fully faded at 19% scroll (image moves away after this)
 
     // ADJUSTABLE: Where alphabet labels appear for progress pictures
-    const alphabetLabelLocation: 'top' | 'left' = 'left';  // 'top' = above images, 'left' = beside images
+    const alphabetLabelLocation = 'top' as 'top' | 'left';  // 'top' = above images, 'left' = beside images
 
     // Calculate total width needed to scroll through all images
     // Mobile: 80vw per image + 4vw gaps
@@ -308,7 +308,7 @@ const FourColumnImageFeed: React.FC = () => {
                                                         >
                                                             {/* Letter label BEFORE image when location is 'left' */}
                                                             {alphabetLabelLocation === 'left' && (
-                                                                <div className="text-xs lowercase text-black pl-8 text-center flex-shrink-0">
+                                                                <div className="text-xs lowercase text-gray-400 text-center flex-shrink-0">
                                                                     {String.fromCharCode(97 + idx)}
                                                                 </div>
                                                             )}

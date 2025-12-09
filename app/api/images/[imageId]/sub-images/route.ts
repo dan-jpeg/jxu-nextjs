@@ -5,7 +5,7 @@ import { adminDb, adminStorage } from '@/lib/firebase-admin';
 // Add sub-image to existing image
 export async function POST(
     request: NextRequest,
-    { params }: { params: { imageId: string } }
+    { params }: { params: Promise<{ imageId: string }> }
 ) {
     try {
         const session = await auth();
@@ -13,7 +13,7 @@ export async function POST(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const imageId = params.imageId;
+        const { imageId } = await params;
 
         // Get file from form data
         const formData = await request.formData();
@@ -85,7 +85,7 @@ export async function POST(
 // Delete sub-image
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { imageId: string } }
+    { params }: { params: Promise<{ imageId: string }> }
 ) {
     try {
         const session = await auth();
@@ -93,7 +93,7 @@ export async function DELETE(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const imageId = params.imageId;
+        const { imageId } = await params;
         const { searchParams } = new URL(request.url);
         const subImageUrl = searchParams.get('url');
 
