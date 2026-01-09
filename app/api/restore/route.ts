@@ -44,6 +44,7 @@ export async function POST(request: NextRequest) {
             restoreBatch.set(docRef, {
                 url: img.url,
                 order: img.order,
+                subImages: img.subImages || [], // ✅ Add this line
                 createdAt: img.createdAt,
                 updatedAt: new Date(),
             });
