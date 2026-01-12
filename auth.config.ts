@@ -13,46 +13,25 @@ export const authConfig: NextAuthConfig = {
                 password: { label: 'Password', type: 'password' },
             },
             async authorize(credentials) {
-                console.log('🔐 Authorization attempt:', {
-                    username: credentials?.username,
-                    hasPassword: !!credentials?.password,
-                });
-
                 if (!credentials?.username || !credentials?.password) {
-                    console.log('❌ Missing credentials');
                     return null;
                 }
 
                 const adminUsername = process.env.ADMIN_USERNAME;
                 const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
 
-                console.log('🔑 Environment check:', {
-                    hasAdminUsername: !!adminUsername,
-                    adminUsername: adminUsername,
-                    hasAdminPasswordHash: !!adminPasswordHash,
-                    hashPreview: adminPasswordHash?.substring(0, 20) + '...',
-                });
-
                 if (!adminUsername || !adminPasswordHash) {
-                    console.error('❌ Admin credentials not configured in environment');
+                    console.error('Admin credentials not configured in environment');
                     return null;
                 }
 
                 const usernameMatch = credentials.username === adminUsername;
-
-                console.log('🔐 Comparing password...');
                 const passwordMatch = compareSync(
                     credentials.password as string,
                     adminPasswordHash
                 );
 
-                console.log('🔍 Credential check:', {
-                    usernameMatch,
-                    passwordMatch,
-                });
-
                 if (usernameMatch && passwordMatch) {
-                    console.log('✅ Login successful!');
                     return {
                         id: '1',
                         name: 'Admin',
@@ -60,7 +39,6 @@ export const authConfig: NextAuthConfig = {
                     };
                 }
 
-                console.log('❌ Login failed');
                 return null;
             },
         }),
@@ -70,12 +48,23 @@ export const authConfig: NextAuthConfig = {
             const isLoggedIn = !!auth?.user;
             const isOnAdmin = nextUrl.pathname.startsWith('/admin');
             const isOnLogin = nextUrl.pathname === '/admin/login';
+            const isOnAdminRoot = nextUrl.pathname === '/admin';
 
-            if (isOnAdmin && !isOnLogin) {
-                if (isLoggedIn) return true;
-                return false;
+            // If on /admin (root) with no trailing slash
+            if (isOnAdminRoot) {
+                if (isLoggedIn) {
+                    return Response.redirect(new URL('/admin/dashboard', nextUrl));
+                }
+                return Response.redirect(new URL('/admin/login', nextUrl));
             }
 
+            // If on admin pages (not login)
+            if (isOnAdmin && !isOnLogin) {
+                if (isLoggedIn) return true;
+                return false; // Redirect to login
+            }
+
+            // If on login while already logged in
             if (isOnLogin && isLoggedIn) {
                 return Response.redirect(new URL('/admin/dashboard', nextUrl));
             }

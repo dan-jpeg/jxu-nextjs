@@ -90,7 +90,7 @@ const FourColumnImageFeed: React.FC = () => {
             <FixedNavbar onArchiveClick={handleArchiveClick} />
 
             {/* 4-column grid - Always rendered, hidden when selected */}
-            <div className={`grid grid-cols-4 gap-12 px-12 pt-20 pb-10 max-w-xl mx-auto ${selectedId ? 'invisible' : 'visible'}`}>
+            <div className={`grid grid-cols-4 gap-12 px-12 pt-20 pb-10 max-w-[1200px] mx-auto ${selectedId ? 'invisible' : 'visible'}`}>
                 {columns.map((column, columnIndex) => (
                     <div key={columnIndex} className="flex flex-col gap-40">
                         {column.map((image) => (

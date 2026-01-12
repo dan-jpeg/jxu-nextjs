@@ -113,6 +113,10 @@ export default function RootLayout({
 }) {
     return (
         <html lang="en" className={testSoehne.variable}>
+        <head>
+            {/* Add Adobe Font */}
+            <link rel="stylesheet" href="https://use.typekit.net/com8lyj.css" />
+        </head>
         <body className={testSoehne.className}>{children}</body>
         </html>
     );
