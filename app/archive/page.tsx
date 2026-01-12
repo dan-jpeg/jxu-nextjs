@@ -95,7 +95,7 @@ const ArchivePage = () => {
                                 className="space-y-4"
                             >
                                 <h1 className="text-2xl font-helvetica font-medium uppercase tracking-wider text-gray-800">
-
+                                    under construction
                                 </h1>
                                 <p className="text-sm lowercase text-gray-500 font-light">
                                     under construction
