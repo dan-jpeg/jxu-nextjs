@@ -9,6 +9,7 @@ const ArchivePage = () => {
     const [projects, setProjects] = useState<Project[]>([]);
     const [loading, setLoading] = useState(true);
     const [expandedProjectId, setExpandedProjectId] = useState<string | null>(null);
+    const [dimmedProjectId, setDimmedProjectId] = useState<string | null>(null);
     const expandedRowRef = useRef<HTMLDivElement | null>(null);
 
     const fetchProjects = async () => {
@@ -28,7 +29,7 @@ const ArchivePage = () => {
     }, []);
 
     useEffect(() => {
-        if (!expandedProjectId) return;
+        if (!dimmedProjectId) return;
 
         const handleScroll = () => {
             if (!expandedRowRef.current) return;
@@ -37,27 +38,37 @@ const ArchivePage = () => {
             const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
 
             if (!isVisible) {
-                setExpandedProjectId(null);
-            }
-        };
-
-        const handleClickOutside = (e: MouseEvent) => {
-            if (expandedRowRef.current && !expandedRowRef.current.contains(e.target as Node)) {
-                setExpandedProjectId(null);
+                setDimmedProjectId(null);
             }
         };
 
         window.addEventListener('scroll', handleScroll, { passive: true });
-        document.addEventListener('click', handleClickOutside);
 
         return () => {
             window.removeEventListener('scroll', handleScroll);
-            document.removeEventListener('click', handleClickOutside);
         };
-    }, [expandedProjectId]);
+    }, [dimmedProjectId]);
 
     const handleToggleExpand = (projectId: string) => {
-        setExpandedProjectId(expandedProjectId === projectId ? null : projectId);
+        const newExpandedId = expandedProjectId === projectId ? null : projectId;
+        setExpandedProjectId(newExpandedId);
+        setDimmedProjectId(newExpandedId);
+
+        // If expanding (not collapsing), scroll the row to top of viewport
+        if (newExpandedId) {
+            setTimeout(() => {
+                const element = document.getElementById(`project-${projectId}`);
+                if (element) {
+                    const rect = element.getBoundingClientRect();
+                    const scrollOffset = rect.top + window.scrollY;
+
+                    window.scrollTo({
+                        top: scrollOffset,
+                        behavior: 'smooth'
+                    });
+                }
+            }, 50);
+        }
     };
 
     // Group and sort projects
@@ -94,13 +105,13 @@ const ArchivePage = () => {
                             <div
                                 key={project.id}
                                 id={`project-${project.id}`}
-                                ref={expandedProjectId === project.id ? expandedRowRef : null}
+                                ref={dimmedProjectId === project.id ? expandedRowRef : null}
                             >
                                 <ProjectRow
                                     project={project}
                                     isExpanded={expandedProjectId === project.id}
                                     onToggleExpand={handleToggleExpand}
-                                    isDimmed={expandedProjectId !== null && expandedProjectId !== project.id}
+                                    isDimmed={dimmedProjectId !== null && dimmedProjectId !== project.id}
                                 />
                             </div>
                         ))}

@@ -81,7 +81,7 @@ const ProjectRow: React.FC<ProjectRowProps> = ({
                                     <img
                                         src={photo.url}
                                         alt={`${project.title} - ${idx + 1}`}
-                                        className="h-[66vh] w-auto object-cover"
+                                        className="h-[60vh] w-auto object-cover"
                                     />
                                 </div>
                             ))}
@@ -94,6 +94,7 @@ const ProjectRow: React.FC<ProjectRowProps> = ({
                 {isExpanded && hasProcessPhotos && (
                     <motion.div
                         key="process-photos"
+                        data-process-photos
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
@@ -101,14 +102,38 @@ const ProjectRow: React.FC<ProjectRowProps> = ({
                         className="overflow-hidden"
                     >
                         <div
-                            className="w-full overflow-x-auto overflow-y-hidden scrollbar-hide cursor-ew-resize"
+                            className="w-full overflow-x-auto overflow-y-hidden scrollbar-hide"
+                            style={{
+                                cursor: 'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\' viewport=\'0 0 24 24\'><text y=\'18\' font-size=\'18\'>←</text></svg>") 12 12, w-resize'
+                            }}
+                            onMouseMove={(e) => {
+                                const container = e.currentTarget;
+                                const rect = container.getBoundingClientRect();
+                                const clickX = e.clientX - rect.left;
+                                const clickPosition = clickX / container.clientWidth;
+
+                                // Change cursor based on position
+                                if (clickPosition < 0.5) {
+                                    container.style.cursor = 'w-resize'; // West (left arrow)
+                                } else {
+                                    container.style.cursor = 'e-resize'; // East (right arrow)
+                                }
+                            }}
                             onClick={(e) => {
                                 const container = e.currentTarget;
                                 const containerWidth = container.clientWidth;
                                 const scrollAmount = containerWidth * 0.2;
 
+                                // Get click position relative to container
+                                const rect = container.getBoundingClientRect();
+                                const clickX = e.clientX - rect.left;
+                                const clickPosition = clickX / containerWidth;
+
+                                // Left half scrolls left, right half scrolls right
+                                const direction = clickPosition < 0.5 ? -1 : 1;
+
                                 container.scrollBy({
-                                    left: scrollAmount,
+                                    left: scrollAmount * direction,
                                     behavior: 'smooth'
                                 });
                             }}
