@@ -8,22 +8,49 @@ import type { Project } from "@/lib/types";
 
 interface ProjectRowProps {
     project: Project;
+    isExpanded?: boolean;
+    onToggleExpand?: (projectId: string) => void;
+    isDimmed?: boolean;
 }
 
-const ProjectRow: React.FC<ProjectRowProps> = ({ project }) => {
-    const [isExpanded, setIsExpanded] = useState(false);
+const ProjectRow: React.FC<ProjectRowProps> = ({
+    project,
+    isExpanded = false,
+    onToggleExpand,
+    isDimmed = false
+}) => {
     const [isHovered, setIsHovered] = useState(false);
 
     const hasProcessPhotos = project.processPhotos && project.processPhotos.length > 0;
 
+    const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (hasProcessPhotos && onToggleExpand) {
+            onToggleExpand(project.id);
+        } else {
+            // Scroll to center the row in the viewport
+            const element = e.currentTarget;
+            const rect = element.getBoundingClientRect();
+            const elementCenter = rect.top + rect.height / 2;
+            const viewportCenter = window.innerHeight / 2;
+            const scrollOffset = elementCenter - viewportCenter;
+
+            window.scrollBy({
+                top: scrollOffset,
+                behavior: 'smooth'
+            });
+        }
+    };
+
     return (
         <div className="w-full">
             {/* Container - ENTIRE ROW CLICKABLE */}
-            <div
-                className={`relative px-12 py-8 ${hasProcessPhotos ? 'cursor-pointer' : 'cursor-default'}`}
-                onClick={() => hasProcessPhotos && setIsExpanded(!isExpanded)}
+            <motion.div
+                className="relative px-12 py-8 cursor-pointer"
+                onClick={handleClick}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
+                animate={{ opacity: isDimmed ? 0.1 : 1 }}
+                transition={{ duration: 0.3 }}
             >
                 {/* Title - Fixed Top Right (rotated when expanded) */}
                 <motion.div
@@ -36,8 +63,8 @@ const ProjectRow: React.FC<ProjectRowProps> = ({ project }) => {
                     transition={{ duration: 0.4, ease: "easeInOut" }}
                 >
                     <div
-                        className={`text-xl font-helvetica font-medium uppercase tracking-wide inline-block transition-all ${
-                            isHovered ? 'bg-yellow-300' : 'bg-transparent'
+                        className={`text-md font-helvetica font-medium uppercase tracking-wide inline-block transition-all ${
+                            isHovered ? 'bg-yellow-200' : 'bg-transparent'
                         }`}
                     >
                         {project.title}
@@ -60,7 +87,7 @@ const ProjectRow: React.FC<ProjectRowProps> = ({ project }) => {
                             ))}
                     </div>
                 </div>
-            </div>
+            </motion.div>
 
             {/* Process Photos - Expandable */}
             <AnimatePresence>
@@ -73,16 +100,28 @@ const ProjectRow: React.FC<ProjectRowProps> = ({ project }) => {
                         transition={{ duration: 0.4, ease: "easeInOut" }}
                         className="overflow-hidden"
                     >
-                        <div className="w-full overflow-x-auto overflow-y-hidden scrollbar-hide bg-gray-50">
-                            <div className="inline-flex items-center gap-8 px-12 py-8">
+                        <div
+                            className="w-full overflow-x-auto overflow-y-hidden scrollbar-hide cursor-ew-resize"
+                            onClick={(e) => {
+                                const container = e.currentTarget;
+                                const containerWidth = container.clientWidth;
+                                const scrollAmount = containerWidth * 0.2;
+
+                                container.scrollBy({
+                                    left: scrollAmount,
+                                    behavior: 'smooth'
+                                });
+                            }}
+                        >
+                            <div className="inline-flex items-center gap-2 px-12 py-8">
                                 {project.processPhotos
                                     .sort((a, b) => a.order - b.order)
                                     .map((photo, idx) => (
                                         <div key={idx} className="flex-shrink-0 flex items-center gap-4">
                                             {/* Letter label */}
-                                            <div className="text-xl font-helvetica text-gray-400">
-                                                {String.fromCharCode(97 + idx)}
-                                            </div>
+                                            {/*<div className="text-xl font-helvetica text-gray-400">*/}
+                                            {/*    {String.fromCharCode(97 + idx)}*/}
+                                            {/*</div>*/}
 
                                             <img
                                                 src={photo.url}

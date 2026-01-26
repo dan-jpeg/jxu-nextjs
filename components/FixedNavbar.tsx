@@ -24,7 +24,7 @@ const FixedNavbar: React.FC<FixedNavbarProps> = ({ projects, onArchiveClick }) =
         const workProjects = projects.filter(p => p.category === 'work');
 
         return (
-            <div className="fixed top-0 left-2 z-50 font-helvetica-cond font-medium p-4 text-xl uppercase max-w-s">
+            <div className="fixed top-0 left-2 z-50 font-helvetica-cond font-medium p-4 text-md uppercase max-w-s">
                 {/* Personal Projects */}
                 {personalProjects.length > 0 && (
                     <div className="mb-2">
