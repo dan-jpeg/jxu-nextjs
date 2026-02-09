@@ -28,6 +28,10 @@ export async function GET(
             description: data.description,
             category: data.category || 'personal', // Default to 'personal' if not set
             order: data.order,
+            useCycler: data.useCycler || false,
+            useCyclerInterval: data.useCyclerInterval || 3000,
+            mainContent: data.mainContent || [],
+            processContent: data.processContent || [],
             mainPhotos: data.mainPhotos || [],
             processPhotos: data.processPhotos || [],
             createdAt: data.createdAt?.toDate() || new Date(),
@@ -77,8 +81,12 @@ export async function PUT(
         if (body.description !== undefined) updateData.description = body.description;
         if (body.category !== undefined) updateData.category = body.category;
         if (body.order !== undefined) updateData.order = body.order;
+        if (body.useCycler !== undefined) updateData.useCycler = body.useCycler;
+        if (body.useCyclerInterval !== undefined) updateData.useCyclerInterval = body.useCyclerInterval;
         if (body.mainPhotos !== undefined) updateData.mainPhotos = body.mainPhotos;
         if (body.processPhotos !== undefined) updateData.processPhotos = body.processPhotos;
+        if (body.mainContent !== undefined) updateData.mainContent = body.mainContent;
+        if (body.processContent !== undefined) updateData.processContent = body.processContent;
 
         await projectRef.update(updateData);
 
@@ -91,6 +99,10 @@ export async function PUT(
             description: data.description,
             category: data.category || 'personal', // Default to 'personal' if not set
             order: data.order,
+            useCycler: data.useCycler || false,
+            useCyclerInterval: data.useCyclerInterval || 3000,
+            mainContent: data.mainContent || [],
+            processContent: data.processContent || [],
             mainPhotos: data.mainPhotos || [],
             processPhotos: data.processPhotos || [],
             createdAt: data.createdAt?.toDate() || new Date(),

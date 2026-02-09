@@ -7,9 +7,10 @@ import ProjectManager from "@/components/ProjectManager";
 import type { Project } from "@/lib/types";
 
 export default function AdminDashboard() {
-    const [activeTab, setActiveTab] = useState<"upload" | "manage">("upload");
+    const [activeTab, setActiveTab] = useState<"upload" | "manage">("manage");
     const [projects, setProjects] = useState<Project[]>([]);
     const [loading, setLoading] = useState(true);
+    const [migrating, setMigrating] = useState(false);
 
     const fetchProjects = async () => {
         setLoading(true);
@@ -33,8 +34,37 @@ export default function AdminDashboard() {
         await signOut({ callbackUrl: "/" });
     };
 
+    const handleMigrateLegacy = async () => {
+        const confirmed = confirm(
+            "Convert legacy main/process photos into content blocks for all projects that don't have them yet?"
+        );
+        if (!confirmed) return;
+
+        setMigrating(true);
+        try {
+            const response = await fetch("/api/projects/migrate-content", {
+                method: "POST",
+            });
+
+            if (!response.ok) {
+                throw new Error("Migration failed");
+            }
+
+            const data = await response.json();
+            alert(
+                `Migration complete. Updated ${data.updatedProjects} project(s), ${data.migratedSections} section(s).`
+            );
+            fetchProjects();
+        } catch (error) {
+            console.error("Error migrating legacy content:", error);
+            alert("Failed to migrate legacy content");
+        } finally {
+            setMigrating(false);
+        }
+    };
+
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gradient-to-br from-zinc-50 via-stone-50 to-neutral-100">
             {/* Header */}
             <div className="bg-white border-b border-gray-200">
                 <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -82,11 +112,22 @@ export default function AdminDashboard() {
                         fetchProjects();
                     }} />
                 ) : (
-                    <ProjectManager
-                        projects={projects}
-                        loading={loading}
-                        onUpdate={fetchProjects}
-                    />
+                    <>
+                        <div className="flex items-center justify-end mb-4">
+                            <button
+                                onClick={handleMigrateLegacy}
+                                disabled={migrating}
+                                className="px-4 py-2 text-sm bg-gray-900 text-white rounded hover:bg-black disabled:bg-gray-400 disabled:cursor-not-allowed"
+                            >
+                                {migrating ? "Migrating..." : "Migrate Legacy Photos"}
+                            </button>
+                        </div>
+                        <ProjectManager
+                            projects={projects}
+                            loading={loading}
+                            onUpdate={fetchProjects}
+                        />
+                    </>
                 )}
             </div>
         </div>

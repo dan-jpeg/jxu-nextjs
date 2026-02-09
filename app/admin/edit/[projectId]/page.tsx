@@ -2,10 +2,42 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "@/lib/firebase";
-import type { Project, ProjectPhoto } from "@/lib/types";
+import ContentBlockEditor from "@/components/ContentBlockEditor";
+import type { ContentBlock, Project, ProjectPhoto } from "@/lib/types";
+
+const normalizeBlocks = (blocks: ContentBlock[]): ContentBlock[] =>
+    [...blocks]
+        .sort((a, b) => a.order - b.order)
+        .map((block, index) => ({ ...block, order: index }));
+
+const legacyPhotosToBlocks = (
+    photos: ProjectPhoto[] | undefined,
+    prefix: string
+): ContentBlock[] => {
+    if (!photos || photos.length === 0) return [];
+
+    const sorted = [...photos].sort((a, b) => a.order - b.order);
+    return sorted.map((photo, index) => ({
+        id: `${prefix}-${index}-${Date.now()}`,
+        type: "photo",
+        order: index,
+        url: photo.url,
+        width: photo.width,
+        height: photo.height,
+        caption: photo.caption,
+    }));
+};
+
+const buildInitialBlocks = (
+    content: ContentBlock[] | undefined,
+    legacy: ProjectPhoto[] | undefined,
+    prefix: string
+) => {
+    if (content && content.length > 0) return normalizeBlocks(content);
+    return legacyPhotosToBlocks(legacy, prefix);
+};
 
 export default function EditProject() {
     const router = useRouter();
@@ -16,12 +48,12 @@ export default function EditProject() {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [category, setCategory] = useState<'personal' | 'work'>('personal');
-    const [mainPhotos, setMainPhotos] = useState<ProjectPhoto[]>([]);
-    const [processPhotos, setProcessPhotos] = useState<ProjectPhoto[]>([]);
+    const [useCycler, setUseCycler] = useState(false);
+    const [useCyclerInterval, setUseCyclerInterval] = useState(3000);
+    const [mainContent, setMainContent] = useState<ContentBlock[]>([]);
+    const [processContent, setProcessContent] = useState<ContentBlock[]>([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [uploadingMain, setUploadingMain] = useState(false);
-    const [uploadingProcess, setUploadingProcess] = useState(false);
 
     // Fetch project data
     useEffect(() => {
@@ -38,8 +70,10 @@ export default function EditProject() {
                 setTitle(proj.title);
                 setDescription(proj.description || "");
                 setCategory(proj.category);
-                setMainPhotos(proj.mainPhotos);
-                setProcessPhotos(proj.processPhotos);
+                setUseCycler(proj.useCycler || false);
+                setUseCyclerInterval(proj.useCyclerInterval || 3000);
+                setMainContent(buildInitialBlocks(proj.mainContent, proj.mainPhotos, "legacy-main"));
+                setProcessContent(buildInitialBlocks(proj.processContent, proj.processPhotos, "legacy-process"));
             } catch (error) {
                 console.error('Error fetching project:', error);
                 alert('Failed to load project');
@@ -54,112 +88,18 @@ export default function EditProject() {
         }
     }, [projectId, router]);
 
-    const handleMainPhotoDragEnd = (result: DropResult) => {
-        if (!result.destination) return;
+    const handlePhotoUpload = async (files: File[]): Promise<string[]> => {
+        const uploadPromises = files.map(async (file, index) => {
+            const timestamp = Date.now();
+            const filename = `${timestamp}-${index}-${file.name}`;
+            const storageRef = ref(storage, `projects/${filename}`);
 
-        const items = Array.from(mainPhotos);
-        const [reorderedItem] = items.splice(result.source.index, 1);
-        items.splice(result.destination.index, 0, reorderedItem);
+            await uploadBytes(storageRef, file);
+            const url = await getDownloadURL(storageRef);
+            return url;
+        });
 
-        // Update order values
-        const updatedItems = items.map((item, index) => ({
-            ...item,
-            order: index,
-        }));
-
-        setMainPhotos(updatedItems);
-    };
-
-    const handleProcessPhotoDragEnd = (result: DropResult) => {
-        if (!result.destination) return;
-
-        const items = Array.from(processPhotos);
-        const [reorderedItem] = items.splice(result.source.index, 1);
-        items.splice(result.destination.index, 0, reorderedItem);
-
-        // Update order values
-        const updatedItems = items.map((item, index) => ({
-            ...item,
-            order: index,
-        }));
-
-        setProcessPhotos(updatedItems);
-    };
-
-    const handleMainPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = e.target.files;
-        if (!files || files.length === 0) return;
-
-        setUploadingMain(true);
-
-        try {
-            const uploadPromises = Array.from(files).map(async (file, index) => {
-                const timestamp = Date.now();
-                const filename = `main-${timestamp}-${index}-${file.name}`;
-                const storageRef = ref(storage, `projects/${filename}`);
-
-                await uploadBytes(storageRef, file);
-                const url = await getDownloadURL(storageRef);
-
-                return {
-                    url,
-                    order: mainPhotos.length + index,
-                };
-            });
-
-            const newPhotos = await Promise.all(uploadPromises);
-            setMainPhotos([...mainPhotos, ...newPhotos]);
-        } catch (error) {
-            console.error('Error uploading main photos:', error);
-            alert('Failed to upload main photos');
-        } finally {
-            setUploadingMain(false);
-        }
-    };
-
-    const handleProcessPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = e.target.files;
-        if (!files || files.length === 0) return;
-
-        setUploadingProcess(true);
-
-        try {
-            const uploadPromises = Array.from(files).map(async (file, index) => {
-                const timestamp = Date.now();
-                const filename = `process-${timestamp}-${index}-${file.name}`;
-                const storageRef = ref(storage, `projects/${filename}`);
-
-                await uploadBytes(storageRef, file);
-                const url = await getDownloadURL(storageRef);
-
-                return {
-                    url,
-                    order: processPhotos.length + index,
-                };
-            });
-
-            const newPhotos = await Promise.all(uploadPromises);
-            setProcessPhotos([...processPhotos, ...newPhotos]);
-        } catch (error) {
-            console.error('Error uploading process photos:', error);
-            alert('Failed to upload process photos');
-        } finally {
-            setUploadingProcess(false);
-        }
-    };
-
-    const removeMainPhoto = (index: number) => {
-        const updated = mainPhotos
-            .filter((_, i) => i !== index)
-            .map((photo, i) => ({ ...photo, order: i }));
-        setMainPhotos(updated);
-    };
-
-    const removeProcessPhoto = (index: number) => {
-        const updated = processPhotos
-            .filter((_, i) => i !== index)
-            .map((photo, i) => ({ ...photo, order: i }));
-        setProcessPhotos(updated);
+        return await Promise.all(uploadPromises);
     };
 
     const handleSave = async () => {
@@ -168,8 +108,8 @@ export default function EditProject() {
             return;
         }
 
-        if (mainPhotos.length === 0) {
-            alert('Please add at least one main photo');
+        if (mainContent.length === 0) {
+            alert('Please add at least one content block (photo or text)');
             return;
         }
 
@@ -183,8 +123,10 @@ export default function EditProject() {
                     title: title.trim(),
                     description: description.trim() || undefined,
                     category,
-                    mainPhotos,
-                    processPhotos,
+                    useCycler,
+                    useCyclerInterval,
+                    mainContent: normalizeBlocks(mainContent),
+                    processContent: normalizeBlocks(processContent),
                 }),
             });
 
@@ -215,22 +157,25 @@ export default function EditProject() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gradient-to-br from-zinc-50 via-stone-50 to-neutral-100">
             {/* Header */}
-            <div className="bg-white border-b border-gray-200">
-                <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-                    <h1 className="text-2xl font-bold">Edit Project</h1>
+            <div className="bg-white/80 backdrop-blur border-b border-gray-200">
+                <div className="max-w-7xl mx-auto px-4 py-6 flex items-center justify-between">
+                    <div className="space-y-1">
+                        <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Project</p>
+                        <h1 className="text-2xl font-semibold text-gray-900">Edit</h1>
+                    </div>
                     <div className="flex gap-2">
                         <button
                             onClick={() => router.push('/admin/dashboard')}
-                            className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition-colors"
+                            className="px-4 py-2 text-xs uppercase tracking-widest border border-gray-300 text-gray-700 rounded-full hover:border-gray-500 transition-colors"
                         >
                             Cancel
                         </button>
                         <button
                             onClick={handleSave}
                             disabled={saving}
-                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                            className="px-4 py-2 bg-gray-900 text-white rounded-full text-xs uppercase tracking-widest hover:bg-black disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                         >
                             {saving ? 'Saving...' : 'Save Changes'}
                         </button>
@@ -240,33 +185,33 @@ export default function EditProject() {
 
             {/* Form */}
             <div className="max-w-7xl mx-auto px-4 py-8">
-                <div className="space-y-8 p-8 bg-white rounded-lg shadow">
+                <div className="space-y-10 p-8 bg-white/80 backdrop-blur rounded-2xl border border-gray-200 shadow-sm">
                     {/* Title */}
                     <div>
-                        <label className="block text-sm font-medium mb-2">
+                        <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2">
                             Project Title <span className="text-red-500">*</span>
                         </label>
                         <input
                             type="text"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-0 py-2 bg-transparent border-b border-gray-300 focus:outline-none focus:border-gray-900 transition-colors"
                         />
                     </div>
 
                     {/* Category */}
                     <div>
-                        <label className="block text-sm font-medium mb-2">
+                        <label className="block text-xs uppercase tracking-widest text-gray-500 mb-3">
                             Category <span className="text-red-500">*</span>
                         </label>
-                        <div className="flex gap-4">
+                        <div className="inline-flex rounded-full border border-gray-200 bg-gray-50 p-1">
                             <button
                                 type="button"
                                 onClick={() => setCategory('personal')}
-                                className={`flex-1 py-3 px-6 rounded font-medium transition-all ${
+                                className={`px-5 py-2 rounded-full text-xs uppercase tracking-widest transition-all ${
                                     category === 'personal'
-                                        ? 'bg-blue-600 text-white'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                        ? 'bg-gray-900 text-white'
+                                        : 'text-gray-600 hover:text-gray-900'
                                 }`}
                             >
                                 Personal Project
@@ -274,10 +219,10 @@ export default function EditProject() {
                             <button
                                 type="button"
                                 onClick={() => setCategory('work')}
-                                className={`flex-1 py-3 px-6 rounded font-medium transition-all ${
+                                className={`px-5 py-2 rounded-full text-xs uppercase tracking-widest transition-all ${
                                     category === 'work'
-                                        ? 'bg-blue-600 text-white'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                        ? 'bg-gray-900 text-white'
+                                        : 'text-gray-600 hover:text-gray-900'
                                 }`}
                             >
                                 Work Experience
@@ -287,147 +232,80 @@ export default function EditProject() {
 
                     {/* Description */}
                     <div>
-                        <label className="block text-sm font-medium mb-2">
+                        <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2">
                             Description <span className="text-gray-400">(optional)</span>
                         </label>
                         <textarea
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                             rows={4}
-                            className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-0 py-2 bg-transparent border-b border-gray-300 focus:outline-none focus:border-gray-900 transition-colors"
                         />
                     </div>
 
-                    {/* Main Photos */}
-                    <div>
-                        <label className="block text-sm font-medium mb-2">
+                    {/* Image Cycler Controls */}
+                    <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 space-y-3">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <div className="text-sm font-medium text-gray-900">Use image cycler on archive</div>
+                                <div className="text-xs text-gray-500">Cycles main photos instead of the standard row</div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setUseCycler(!useCycler)}
+                                className={`px-3 py-1 text-xs rounded-full border transition-colors ${
+                                    useCycler
+                                        ? 'bg-gray-900 text-white border-gray-900'
+                                        : 'bg-white text-gray-700 border-gray-200 hover:border-gray-400'
+                                }`}
+                            >
+                                {useCycler ? 'On' : 'Off'}
+                            </button>
+                        </div>
+
+                        {useCycler && (
+                            <div className="flex items-center gap-3">
+                                <label className="text-xs uppercase tracking-widest text-gray-500">Cycler interval (ms)</label>
+                                <input
+                                    type="number"
+                                    min={250}
+                                    step={250}
+                                    value={useCyclerInterval}
+                                    onChange={(e) => setUseCyclerInterval(Number(e.target.value) || 3000)}
+                                    className="w-28 px-2 py-1 text-xs bg-white border border-gray-300 rounded focus:outline-none focus:border-gray-900"
+                                />
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Main Photos Blocks */}
+                    <div className="border-t border-gray-100 pt-6">
+                        <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2">
                             Main Photos <span className="text-red-500">*</span>
-                            <span className="text-gray-400 text-xs ml-2">(Drag to reorder)</span>
                         </label>
-                        <input
-                            type="file"
-                            multiple
-                            accept="image/*"
-                            onChange={handleMainPhotoUpload}
-                            disabled={uploadingMain}
-                            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 mb-4"
+                        <ContentBlockEditor
+                            blocks={mainContent}
+                            onChange={setMainContent}
+                            onPhotoUpload={handlePhotoUpload}
                         />
-                        {uploadingMain && (
-                            <p className="text-sm text-blue-600 mb-4">Uploading...</p>
-                        )}
-
-                        <DragDropContext onDragEnd={handleMainPhotoDragEnd}>
-                            <Droppable droppableId="main-photos" direction="horizontal">
-                                {(provided) => (
-                                    <div
-                                        {...provided.droppableProps}
-                                        ref={provided.innerRef}
-                                        className="flex gap-4 overflow-x-auto pb-4"
-                                    >
-                                        {mainPhotos.map((photo, index) => (
-                                            <Draggable
-                                                key={photo.url}
-                                                draggableId={photo.url}
-                                                index={index}
-                                            >
-                                                {(provided, snapshot) => (
-                                                    <div
-                                                        ref={provided.innerRef}
-                                                        {...provided.draggableProps}
-                                                        {...provided.dragHandleProps}
-                                                        className={`relative flex-shrink-0 ${
-                                                            snapshot.isDragging ? 'opacity-50' : ''
-                                                        }`}
-                                                    >
-                                                        <img
-                                                            src={photo.url}
-                                                            alt={`Main ${index + 1}`}
-                                                            className="w-32 h-32 object-cover rounded border-2 border-gray-200"
-                                                        />
-                                                        <button
-                                                            onClick={() => removeMainPhoto(index)}
-                                                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
-                                                        >
-                                                            ×
-                                                        </button>
-                                                        <div className="absolute bottom-1 left-1 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
-                                                            {index + 1}
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </Draggable>
-                                        ))}
-                                        {provided.placeholder}
-                                    </div>
-                                )}
-                            </Droppable>
-                        </DragDropContext>
+                        <p className="text-xs text-gray-500 mt-2">
+                            Mix photos and text blocks. Drag to reorder.
+                        </p>
                     </div>
 
-                    {/* Process Photos */}
-                    <div>
-                        <label className="block text-sm font-medium mb-2">
+                    {/* Process Photos Blocks */}
+                    <div className="border-t border-gray-100 pt-6">
+                        <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2">
                             Process Photos <span className="text-gray-400">(optional)</span>
-                            <span className="text-gray-400 text-xs ml-2">(Drag to reorder)</span>
                         </label>
-                        <input
-                            type="file"
-                            multiple
-                            accept="image/*"
-                            onChange={handleProcessPhotoUpload}
-                            disabled={uploadingProcess}
-                            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 mb-4"
+                        <ContentBlockEditor
+                            blocks={processContent}
+                            onChange={setProcessContent}
+                            onPhotoUpload={handlePhotoUpload}
                         />
-                        {uploadingProcess && (
-                            <p className="text-sm text-green-600 mb-4">Uploading...</p>
-                        )}
-
-                        <DragDropContext onDragEnd={handleProcessPhotoDragEnd}>
-                            <Droppable droppableId="process-photos" direction="horizontal">
-                                {(provided) => (
-                                    <div
-                                        {...provided.droppableProps}
-                                        ref={provided.innerRef}
-                                        className="flex gap-4 overflow-x-auto pb-4"
-                                    >
-                                        {processPhotos.map((photo, index) => (
-                                            <Draggable
-                                                key={photo.url}
-                                                draggableId={photo.url}
-                                                index={index}
-                                            >
-                                                {(provided, snapshot) => (
-                                                    <div
-                                                        ref={provided.innerRef}
-                                                        {...provided.draggableProps}
-                                                        {...provided.dragHandleProps}
-                                                        className={`relative flex-shrink-0 ${
-                                                            snapshot.isDragging ? 'opacity-50' : ''
-                                                        }`}
-                                                    >
-                                                        <img
-                                                            src={photo.url}
-                                                            alt={`Process ${index + 1}`}
-                                                            className="w-32 h-32 object-cover rounded border-2 border-gray-200"
-                                                        />
-                                                        <button
-                                                            onClick={() => removeProcessPhoto(index)}
-                                                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
-                                                        >
-                                                            ×
-                                                        </button>
-                                                        <div className="absolute bottom-1 left-1 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
-                                                            {String.fromCharCode(97 + index)}
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </Draggable>
-                                        ))}
-                                        {provided.placeholder}
-                                    </div>
-                                )}
-                            </Droppable>
-                        </DragDropContext>
+                        <p className="text-xs text-gray-500 mt-2">
+                            Optional: Add process photos and notes.
+                        </p>
                     </div>
                 </div>
             </div>

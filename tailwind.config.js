@@ -4,13 +4,10 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        // Test Soehne (default via CSS variable)
+        'georgia': ['Georgia', 'serif'],
         sans: ['var(--font-test-soehne)', 'Arial', 'sans-serif'],
 
-        // Helvetica Neue LT Pro (Adobe Font)
         helvetica: ['helvetica-neue-lt-pro', 'sans-serif'],
-
-        // Helvetica Neue Condensed (optional, for bold condensed)
         'helvetica-cond': ['helvetica-neue-lt-pro-cond', 'sans-serif'],
       },
       animation: {

@@ -3,8 +3,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import type { Project } from "@/lib/types";
+import type { ContentBlock, Project } from "@/lib/types";
 
 interface ProjectManagerProps {
     projects: Project[];
@@ -17,7 +16,6 @@ const ProjectManager: React.FC<ProjectManagerProps> = ({
                                                            loading,
                                                            onUpdate
                                                        }) => {
-    const router = useRouter();
     const [deletingId, setDeletingId] = useState<string | null>(null);
 
     const handleDelete = async (projectId: string, projectTitle: string) => {
@@ -53,7 +51,6 @@ const ProjectManager: React.FC<ProjectManagerProps> = ({
         const newIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
         if (newIndex < 0 || newIndex >= projects.length) return;
 
-        // Swap orders
         const project1 = projects[currentIndex];
         const project2 = projects[newIndex];
 
@@ -88,42 +85,53 @@ const ProjectManager: React.FC<ProjectManagerProps> = ({
 
     if (projects.length === 0) {
         return (
-            <div className="bg-white rounded-lg shadow p-12 text-center">
-                <p className="text-gray-500 mb-4">No projects yet</p>
-                <p className="text-sm text-gray-400">Create your first project to get started</p>
+            <div className="bg-white/80 backdrop-blur rounded-2xl border border-gray-200 p-12 text-center">
+                <p className="text-gray-700 mb-2 text-sm uppercase tracking-widest">No projects yet</p>
+                <p className="text-xs text-gray-400">Create your first project to get started</p>
             </div>
         );
     }
 
+    const getPhotoBlocks = (blocks?: ContentBlock[]) =>
+        (blocks || []).filter((block) => block.type === "photo");
+
     return (
         <div className="space-y-4">
-            <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="bg-white/80 backdrop-blur rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
                 <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-gray-50/80">
                     <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-[0.2em]">
                             Order
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-[0.2em]">
                             Category
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-[0.2em]">
                             Title
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-[0.2em]">
                             Main Photos
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-[0.2em]">
                             Process Photos
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-[0.2em]">
                             Actions
                         </th>
                     </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                    {projects.map((project, index) => (
-                        <tr key={project.id} className="hover:bg-gray-50">
+                    <tbody className="bg-white divide-y divide-gray-100">
+                    {projects.map((project, index) => {
+                        const mainPhotoBlocks = getPhotoBlocks(project.mainContent);
+                        const processPhotoBlocks = getPhotoBlocks(project.processContent);
+                        const mainCount = mainPhotoBlocks.length || project.mainPhotos.length;
+                        const processCount = processPhotoBlocks.length || project.processPhotos.length;
+                        const mainThumbs = mainPhotoBlocks.length > 0 ? mainPhotoBlocks : project.mainPhotos;
+                        const processThumbs = processPhotoBlocks.length > 0 ? processPhotoBlocks : project.processPhotos;
+
+                        return (
+                        <tr key={project.id} className="hover:bg-gray-50/80">
                             <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="flex items-center gap-2">
                                     <span className="text-sm text-gray-900">{index + 1}</span>
@@ -131,7 +139,7 @@ const ProjectManager: React.FC<ProjectManagerProps> = ({
                                         <button
                                             onClick={() => handleReorder(project.id, "up")}
                                             disabled={index === 0}
-                                            className="text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                                            className="text-gray-400 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed"
                                             title="Move up"
                                         >
                                             ▲
@@ -139,7 +147,7 @@ const ProjectManager: React.FC<ProjectManagerProps> = ({
                                         <button
                                             onClick={() => handleReorder(project.id, "down")}
                                             disabled={index === projects.length - 1}
-                                            className="text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                                            className="text-gray-400 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed"
                                             title="Move down"
                                         >
                                             ▼
@@ -148,13 +156,13 @@ const ProjectManager: React.FC<ProjectManagerProps> = ({
                                 </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                      project.category === 'personal'
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-green-100 text-green-800'
-                  }`}>
-                    {project.category === 'personal' ? 'Personal' : 'Work'}
-                  </span>
+                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] uppercase tracking-widest border ${
+                                    project.category === 'personal'
+                                        ? 'border-gray-300 text-gray-700'
+                                        : 'border-gray-300 text-gray-700'
+                                }`}>
+                                    {project.category === 'personal' ? 'Personal' : 'Work'}
+                                </span>
                             </td>
                             <td className="px-6 py-4">
                                 <div className="text-sm text-gray-900 max-w-xs truncate">
@@ -169,11 +177,11 @@ const ProjectManager: React.FC<ProjectManagerProps> = ({
                             <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="flex items-center gap-2">
                     <span className="text-sm text-gray-900">
-                      {project.mainPhotos.length}
+                      {mainCount}
                     </span>
-                                    {project.mainPhotos.length > 0 && (
+                                    {mainCount > 0 && (
                                         <div className="flex -space-x-2">
-                                            {project.mainPhotos.slice(0, 3).map((photo, idx) => (
+                                            {mainThumbs.slice(0, 3).map((photo, idx) => (
                                                 <img
                                                     key={idx}
                                                     src={photo.url}
@@ -181,9 +189,9 @@ const ProjectManager: React.FC<ProjectManagerProps> = ({
                                                     className="w-8 h-8 rounded-full border-2 border-white object-cover"
                                                 />
                                             ))}
-                                            {project.mainPhotos.length > 3 && (
+                                            {mainCount > 3 && (
                                                 <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center text-xs text-gray-600">
-                                                    +{project.mainPhotos.length - 3}
+                                                    +{mainCount - 3}
                                                 </div>
                                             )}
                                         </div>
@@ -193,11 +201,11 @@ const ProjectManager: React.FC<ProjectManagerProps> = ({
                             <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="flex items-center gap-2">
                     <span className="text-sm text-gray-900">
-                      {project.processPhotos.length}
+                      {processCount}
                     </span>
-                                    {project.processPhotos.length > 0 && (
+                                    {processCount > 0 && (
                                         <div className="flex -space-x-2">
-                                            {project.processPhotos.slice(0, 3).map((photo, idx) => (
+                                            {processThumbs.slice(0, 3).map((photo, idx) => (
                                                 <img
                                                     key={idx}
                                                     src={photo.url}
@@ -205,9 +213,9 @@ const ProjectManager: React.FC<ProjectManagerProps> = ({
                                                     className="w-8 h-8 rounded-full border-2 border-white object-cover"
                                                 />
                                             ))}
-                                            {project.processPhotos.length > 3 && (
+                                            {processCount > 3 && (
                                                 <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center text-xs text-gray-600">
-                                                    +{project.processPhotos.length - 3}
+                                                    +{processCount - 3}
                                                 </div>
                                             )}
                                         </div>
@@ -220,34 +228,35 @@ const ProjectManager: React.FC<ProjectManagerProps> = ({
                                         href={`/archive#${project.id}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-blue-600 hover:text-blue-900"
+                                        className="text-gray-700 hover:text-black underline-offset-4 hover:underline"
                                     >
                                         View
                                     </a>
-                                    <button
-                                        onClick={() => router.push(`/admin/edit/${project.id}`)}
-                                        className="text-green-600 hover:text-green-900"
+                                    <a
+                                        href={`/admin/edit/${project.id}`}
+                                        className="text-gray-700 hover:text-black underline-offset-4 hover:underline"
                                     >
                                         Edit
-                                    </button>
+                                    </a>
                                     <button
                                         onClick={() => handleDelete(project.id, project.title)}
                                         disabled={deletingId === project.id}
-                                        className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="text-red-600 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         {deletingId === project.id ? "Deleting..." : "Delete"}
                                     </button>
                                 </div>
                             </td>
                         </tr>
-                    ))}
+                        );
+                    })}
                     </tbody>
                 </table>
             </div>
 
             {/* Summary */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-sm text-blue-800">
+            <div className="bg-white/80 backdrop-blur border border-gray-200 rounded-2xl p-4">
+                <p className="text-xs uppercase tracking-widest text-gray-500">
                     <strong>{projects.length}</strong> project{projects.length !== 1 ? 's' : ''} total •{' '}
                     <strong>{projects.reduce((sum, p) => sum + p.mainPhotos.length, 0)}</strong> main photos •{' '}
                     <strong>{projects.reduce((sum, p) => sum + p.processPhotos.length, 0)}</strong> process photos

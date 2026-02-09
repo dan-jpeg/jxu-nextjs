@@ -1,28 +1,71 @@
-// components/ProjectUpload.tsx
+// components/ProjectEdit.tsx
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "@/lib/firebase";
 import ContentBlockEditor from "./ContentBlockEditor";
-import type { ContentBlock, PhotoBlock } from "@/lib/types";
+import type { ContentBlock, Project, ProjectPhoto } from "@/lib/types";
 
-interface ProjectUploadProps {
+interface ProjectEditProps {
+    project: Project;
     onSuccess?: () => void;
+    onCancel?: () => void;
 }
 
-const ProjectUpload: React.FC<ProjectUploadProps> = ({ onSuccess }) => {
-    const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
-    const [category, setCategory] = useState<'personal' | 'work'>('personal');
-    const [useCycler, setUseCycler] = useState(false);
-    const [useCyclerInterval, setUseCyclerInterval] = useState(3000);
+const normalizeBlocks = (blocks: ContentBlock[]): ContentBlock[] =>
+    [...blocks]
+        .sort((a, b) => a.order - b.order)
+        .map((block, index) => ({ ...block, order: index }));
+
+const legacyPhotosToBlocks = (
+    photos: ProjectPhoto[] | undefined,
+    prefix: string
+): ContentBlock[] => {
+    if (!photos || photos.length === 0) return [];
+
+    const sorted = [...photos].sort((a, b) => a.order - b.order);
+    return sorted.map((photo, index) => ({
+        id: `${prefix}-${index}-${Date.now()}`,
+        type: "photo",
+        order: index,
+        url: photo.url,
+        width: photo.width,
+        height: photo.height,
+        caption: photo.caption,
+    }));
+};
+
+const buildInitialBlocks = (
+    content: ContentBlock[] | undefined,
+    legacy: ProjectPhoto[] | undefined,
+    prefix: string
+) => {
+    if (content && content.length > 0) return normalizeBlocks(content);
+    return legacyPhotosToBlocks(legacy, prefix);
+};
+
+const ProjectEdit: React.FC<ProjectEditProps> = ({ project, onSuccess, onCancel }) => {
+    const [title, setTitle] = useState(project.title);
+    const [description, setDescription] = useState(project.description || "");
+    const [category, setCategory] = useState<'personal' | 'work'>(project.category);
+    const [useCycler, setUseCycler] = useState<boolean>(project.useCycler || false);
+    const [useCyclerInterval, setUseCyclerInterval] = useState<number>(project.useCyclerInterval || 3000);
     const [mainContent, setMainContent] = useState<ContentBlock[]>([]);
     const [processContent, setProcessContent] = useState<ContentBlock[]>([]);
     const [uploading, setUploading] = useState(false);
 
-    // Handle photo upload for content blocks
+    useEffect(() => {
+        setTitle(project.title);
+        setDescription(project.description || "");
+        setCategory(project.category);
+        setUseCycler(project.useCycler || false);
+        setUseCyclerInterval(project.useCyclerInterval || 3000);
+        setMainContent(buildInitialBlocks(project.mainContent, project.mainPhotos, "legacy-main"));
+        setProcessContent(buildInitialBlocks(project.processContent, project.processPhotos, "legacy-process"));
+    }, [project]);
+
     const handlePhotoUpload = async (files: File[]): Promise<string[]> => {
         const uploadPromises = files.map(async (file, index) => {
             const timestamp = Date.now();
@@ -37,7 +80,7 @@ const ProjectUpload: React.FC<ProjectUploadProps> = ({ onSuccess }) => {
         return await Promise.all(uploadPromises);
     };
 
-    const handleCreateProject = async () => {
+    const handleUpdateProject = async () => {
         if (!title.trim()) {
             alert('Please enter a project title');
             return;
@@ -51,95 +94,78 @@ const ProjectUpload: React.FC<ProjectUploadProps> = ({ onSuccess }) => {
         setUploading(true);
 
         try {
-            // Create project
-            const createResponse = await fetch('/api/projects', {
-                method: 'POST',
+            const updateResponse = await fetch(`/api/projects/${project.id}`, {
+                method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     title: title.trim(),
                     description: description.trim() || undefined,
                     category: category,
-                    order: 0,
                     useCycler,
                     useCyclerInterval,
-                }),
-            });
-
-            if (!createResponse.ok) {
-                throw new Error('Failed to create project');
-            }
-
-            const { project } = await createResponse.json();
-
-            // Update with content blocks
-            const updateResponse = await fetch(`/api/projects/${project.id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    mainContent,
-                    processContent,
+                    mainContent: normalizeBlocks(mainContent),
+                    processContent: normalizeBlocks(processContent),
                 }),
             });
 
             if (!updateResponse.ok) {
-                throw new Error('Failed to add content to project');
+                throw new Error('Failed to update project');
             }
 
-            alert('Project created successfully!');
-
-            // Reset form
-            setTitle('');
-            setDescription('');
-            setMainContent([]);
-            setProcessContent([]);
+            alert('Project updated successfully!');
 
             if (onSuccess) {
                 onSuccess();
-            } else {
-                window.location.reload();
             }
         } catch (error) {
-            console.error('Error creating project:', error);
-            alert('Failed to create project');
+            console.error('Error updating project:', error);
+            alert('Failed to update project');
         } finally {
             setUploading(false);
         }
     };
 
     return (
-        <div className="space-y-10 p-8 bg-white/80 backdrop-blur rounded-2xl border border-gray-200 shadow-sm">
-            <div className="space-y-2">
-                <p className="text-xs uppercase tracking-[0.2em] text-gray-500">New Project</p>
-                <h2 className="text-2xl font-semibold text-gray-900">Create</h2>
+        <div className="space-y-8 p-8 bg-white rounded-lg shadow">
+            <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold">Edit Project</h2>
+                {onCancel && (
+                    <button
+                        onClick={onCancel}
+                        className="text-gray-600 hover:text-gray-900"
+                    >
+                        ✕
+                    </button>
+                )}
             </div>
 
             {/* Title Input */}
             <div>
-                <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2">
+                <label className="block text-sm font-medium mb-2">
                     Project Title <span className="text-red-500">*</span>
                 </label>
                 <input
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full px-0 py-2 bg-transparent border-b border-gray-300 focus:outline-none focus:border-gray-900 transition-colors"
+                    className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="e.g., THESIS COLLECTION_ELEVATOR EFFECT"
                 />
             </div>
 
             {/* Category Selector */}
             <div>
-                <label className="block text-xs uppercase tracking-widest text-gray-500 mb-3">
+                <label className="block text-sm font-medium mb-2">
                     Category <span className="text-red-500">*</span>
                 </label>
-                <div className="inline-flex rounded-full border border-gray-200 bg-gray-50 p-1">
+                <div className="flex gap-4">
                     <button
                         type="button"
                         onClick={() => setCategory('personal')}
-                        className={`px-5 py-2 rounded-full text-xs uppercase tracking-widest transition-all ${
+                        className={`flex-1 py-3 px-6 rounded font-medium transition-all ${
                             category === 'personal'
-                                ? 'bg-gray-900 text-white'
-                                : 'text-gray-600 hover:text-gray-900'
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                     >
                         Personal Project
@@ -147,10 +173,10 @@ const ProjectUpload: React.FC<ProjectUploadProps> = ({ onSuccess }) => {
                     <button
                         type="button"
                         onClick={() => setCategory('work')}
-                        className={`px-5 py-2 rounded-full text-xs uppercase tracking-widest transition-all ${
+                        className={`flex-1 py-3 px-6 rounded font-medium transition-all ${
                             category === 'work'
-                                ? 'bg-gray-900 text-white'
-                                : 'text-gray-600 hover:text-gray-900'
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                     >
                         Work Experience
@@ -160,14 +186,14 @@ const ProjectUpload: React.FC<ProjectUploadProps> = ({ onSuccess }) => {
 
             {/* Description Input */}
             <div>
-                <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2">
+                <label className="block text-sm font-medium mb-2">
                     Description <span className="text-gray-400">(optional)</span>
                 </label>
                 <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows={4}
-                    className="w-full px-0 py-2 bg-transparent border-b border-gray-300 focus:outline-none focus:border-gray-900 transition-colors"
+                    className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Project description"
                 />
             </div>
@@ -208,8 +234,8 @@ const ProjectUpload: React.FC<ProjectUploadProps> = ({ onSuccess }) => {
             </div>
 
             {/* Main Photos Blocks */}
-            <div className="border-t border-gray-100 pt-6">
-                <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2">
+            <div className="border-t pt-6">
+                <label className="block text-sm font-medium mb-2">
                     Main Photos <span className="text-red-500">*</span>
                 </label>
                 <ContentBlockEditor
@@ -223,8 +249,8 @@ const ProjectUpload: React.FC<ProjectUploadProps> = ({ onSuccess }) => {
             </div>
 
             {/* Process Photos Blocks */}
-            <div className="border-t border-gray-100 pt-6">
-                <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2">
+            <div className="border-t pt-6">
+                <label className="block text-sm font-medium mb-2">
                     Process Photos <span className="text-gray-400">(optional)</span>
                 </label>
                 <ContentBlockEditor
@@ -237,16 +263,16 @@ const ProjectUpload: React.FC<ProjectUploadProps> = ({ onSuccess }) => {
                 </p>
             </div>
 
-            {/* Create Button */}
+            {/* Update Button */}
             <button
-                onClick={handleCreateProject}
+                onClick={handleUpdateProject}
                 disabled={uploading}
-                className="w-full py-3 bg-gray-900 text-white rounded-full text-sm uppercase tracking-widest hover:bg-black disabled:bg-gray-400 disabled:cursor-not-allowed"
+                className="w-full py-3 bg-blue-600 text-white rounded font-semibold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-                {uploading ? 'Creating Project...' : 'Create Project'}
+                {uploading ? "Saving..." : "Save Changes"}
             </button>
         </div>
     );
 };
 
-export default ProjectUpload;
+export default ProjectEdit;

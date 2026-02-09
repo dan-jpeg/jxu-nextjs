@@ -12,12 +12,17 @@ const ImageCycler: React.FC<ImageCyclerProps> = ({ images, interval = 3000 }) =>
     const [currentIndex, setCurrentIndex] = useState(0);
 
     useEffect(() => {
+        if (images.length === 0) return;
         const timer = setInterval(() => {
             setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
         }, interval);
 
         return () => clearInterval(timer);
     }, [images, interval]);
+
+    if (images.length === 0) {
+        return null;
+    }
 
     return (
         <div className="w-full h-full relative">

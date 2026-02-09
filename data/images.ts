@@ -34,7 +34,7 @@ export const archiveImages = [
 export const imageCyclerImages = [
     "https://edie-xu-portfolio.s3.us-east-2.amazonaws.com/photos/jxu/design.jpeg",
     "https://edie-xu-portfolio.s3.us-east-2.amazonaws.com/photos/jxu/Adesign2.jpeg",
-    "https://edie-xu-portfolio.s3.us-east-2.amazonaws.com/photos/jxu/Adesign5.jpeg",
+        "https://edie-xu-portfolio.s3.us-east-2.amazonaws.com/photos/jxu/Adesign5.jpeg",
     "https://edie-xu-portfolio.s3.us-east-2.amazonaws.com/photos/jxu/Adesign3.jpeg",
     "https://edie-xu-portfolio.s3.us-east-2.amazonaws.com/photos/jxu/Adesign4.jpeg",
     // "https://firebasestorage.googleapis.com/v0/b/common-base-d538e.firebasestorage.app/o/jxu-red-chair-dress-00002.JPG?alt=media&token=323d72bc-8c40-489a-a57c-4941cfc1aaf7",
