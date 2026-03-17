@@ -59,7 +59,6 @@ const ProjectUpload: React.FC<ProjectUploadProps> = ({ onSuccess }) => {
                     title: title.trim(),
                     description: description.trim() || undefined,
                     category: category,
-                    order: 0,
                     useCycler,
                     useCyclerInterval,
                 }),

@@ -88,11 +88,26 @@ export async function POST(request: NextRequest) {
         const projectRef = adminDb.collection('projects').doc();
         const now = new Date();
 
+        let nextOrder = 0;
+        if (typeof body.order === 'number' && Number.isFinite(body.order)) {
+            nextOrder = body.order;
+        } else {
+            const snapshot = await adminDb.collection('projects').get();
+            let maxOrder = -1;
+            snapshot.docs.forEach((doc) => {
+                const data = doc.data();
+                const parsed = typeof data.order === 'number' ? data.order : Number(data.order);
+                const value = Number.isFinite(parsed) ? parsed : -1;
+                if (value > maxOrder) maxOrder = value;
+            });
+            nextOrder = maxOrder + 1;
+        }
+
         const projectData = {
             title: body.title,
             description: body.description || '',
             category: body.category,
-            order: body.order || 0,
+            order: nextOrder,
             useCycler: body.useCycler || false,
             useCyclerInterval: body.useCyclerInterval || 3000,
             mainContent: [],

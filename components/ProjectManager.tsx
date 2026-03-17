@@ -51,22 +51,20 @@ const ProjectManager: React.FC<ProjectManagerProps> = ({
         const newIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
         if (newIndex < 0 || newIndex >= projects.length) return;
 
-        const project1 = projects[currentIndex];
-        const project2 = projects[newIndex];
-
         try {
-            await Promise.all([
-                fetch(`/api/projects/${project1.id}`, {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ order: project2.order }),
-                }),
-                fetch(`/api/projects/${project2.id}`, {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ order: project1.order }),
-                }),
-            ]);
+            const nextIds = [...projects].map((p) => p.id);
+            const [moved] = nextIds.splice(currentIndex, 1);
+            nextIds.splice(newIndex, 0, moved);
+
+            const response = await fetch("/api/projects/reorder", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ projectIds: nextIds }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to reorder projects");
+            }
 
             onUpdate();
         } catch (error) {
