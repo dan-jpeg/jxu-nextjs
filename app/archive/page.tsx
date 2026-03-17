@@ -31,11 +31,11 @@ const ArchivePage = () => {
     // Group and sort projects
     const personalProjects = projects
         .filter(p => p.category === 'personal')
-        .sort((a, b) => a.order - b.order);
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
     const workProjects = projects
         .filter(p => p.category === 'work')
-        .sort((a, b) => a.order - b.order);
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
     const orderedProjects = [...personalProjects, ...workProjects];
 
@@ -112,7 +112,7 @@ const ArchivePage = () => {
     return (
         <div className="relative w-full bg-white">
             <FixedTitleBar />
-            <FixedNavbar projects={projects}/>
+            <FixedNavbar projects={orderedProjects}/>
 
             {/* Scroll container with snap */}
             <div

@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import type { Project } from "@/lib/types";
 
@@ -44,6 +44,23 @@ const FixedNavbar: React.FC<FixedNavbarProps> = ({ projects, currentProjectId, o
             router.push(`/archive/${projectId}`);
         };
 
+        const { personalProjects, workProjects, orderedProjects } = useMemo(() => {
+            const byOrder = (a: Project, b: Project) => a.order - b.order;
+
+            const personal = [...projects]
+                .filter((p) => p.category === 'personal')
+                .sort(byOrder);
+            const work = [...projects]
+                .filter((p) => p.category === 'work')
+                .sort(byOrder);
+
+            return {
+                personalProjects: personal,
+                workProjects: work,
+                orderedProjects: [...personal, ...work],
+            };
+        }, [projects]);
+
         // Detect which project is currently in view (only on archive page)
         useEffect(() => {
             if (isProjectDetailPage && currentProjectId) {
@@ -57,43 +74,36 @@ const FixedNavbar: React.FC<FixedNavbarProps> = ({ projects, currentProjectId, o
             if (!scrollContainer) return;
 
             const handleScroll = () => {
-                const sections = projects.map(p => ({
+                const sections = orderedProjects.map((p) => ({
                     id: p.id,
-                    element: document.getElementById(`project-${p.id}`)
+                    element: document.getElementById(`project-${p.id}`),
                 }));
 
                 const containerRect = scrollContainer.getBoundingClientRect();
-                const viewportCenter = containerRect.top + (containerRect.height / 2);
+                const viewportCenter = containerRect.top + containerRect.height / 2;
 
                 let closestDistance = Infinity;
-                let currentId = null;
+                let currentId: string | null = null;
 
                 sections.forEach(({ id, element }) => {
-                    if (element) {
-                        const rect = element.getBoundingClientRect();
-                        const elementCenter = rect.top + (rect.height / 2);
-                        const distance = Math.abs(elementCenter - viewportCenter);
+                    if (!element) return;
+                    const rect = element.getBoundingClientRect();
+                    const elementCenter = rect.top + rect.height / 2;
+                    const distance = Math.abs(elementCenter - viewportCenter);
 
-                        if (distance < closestDistance) {
-                            closestDistance = distance;
-                            currentId = id;
-                        }
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        currentId = id;
                     }
                 });
 
-                if (currentId) {
-                    setActiveProjectId(currentId);
-                }
+                if (currentId) setActiveProjectId(currentId);
             };
 
             handleScroll();
             scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
             return () => scrollContainer.removeEventListener('scroll', handleScroll);
-        }, [projects, isArchivePage, isProjectDetailPage, currentProjectId]);
-
-        // Group projects by category
-        const personalProjects = projects.filter(p => p.category === 'personal');
-        const workProjects = projects.filter(p => p.category === 'work');
+        }, [orderedProjects, isArchivePage, isProjectDetailPage, currentProjectId]);
 
         return (
             <div className="fixed top-0 left-0 z-50 font-normal font-georgia pt-2 text-md lowercase max-w-s">

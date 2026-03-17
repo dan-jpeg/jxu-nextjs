@@ -5,34 +5,56 @@ import { auth } from '@/auth';
 import { adminDb } from '@/lib/firebase-admin';
 import type { Project, CreateProjectData } from '@/lib/types';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/projects - Get all projects
 export async function GET() {
     try {
-        const projectsSnapshot = await adminDb
-            .collection('projects')
-            .orderBy('order', 'asc')
-            .get();
+        const projectsSnapshot = await adminDb.collection('projects').get();
 
         const projects: Project[] = projectsSnapshot.docs.map(doc => {
             const data = doc.data();
+            const parsedOrder =
+                typeof data.order === 'number' ? data.order : Number(data.order);
+            const order = Number.isFinite(parsedOrder)
+                ? parsedOrder
+                : Number.MAX_SAFE_INTEGER;
+            const category = data.category === 'work' ? 'work' : 'personal';
+
             return {
                 id: doc.id,
                 title: data.title,
                 description: data.description,
-                category: data.category || 'personal', // Default to 'personal' if not set
-                order: data.order,
+                category,
+                order,
                 useCycler: data.useCycler || false,
                 useCyclerInterval: data.useCyclerInterval || 3000,
                 mainContent: data.mainContent || [],
                 processContent: data.processContent || [],
                 mainPhotos: data.mainPhotos || [],
                 processPhotos: data.processPhotos || [],
-                createdAt: data.createdAt?.toDate() || new Date(),
-                updatedAt: data.updatedAt?.toDate() || new Date(),
+                createdAt: data.createdAt?.toDate() || new Date(0),
+                updatedAt: data.updatedAt?.toDate() || new Date(0),
             };
         });
 
-        return NextResponse.json({ projects }, { status: 200 });
+        const categoryRank = (value: Project['category']) =>
+            value === 'personal' ? 0 : 1;
+
+        projects.sort((a, b) => {
+            const categoryDiff = categoryRank(a.category) - categoryRank(b.category);
+            if (categoryDiff !== 0) return categoryDiff;
+
+            const orderDiff = a.order - b.order;
+            if (orderDiff !== 0) return orderDiff;
+
+            return a.createdAt.getTime() - b.createdAt.getTime();
+        });
+
+        return NextResponse.json(
+            { projects },
+            { status: 200, headers: { 'Cache-Control': 'no-store' } }
+        );
     } catch (error) {
         console.error('Error fetching projects:', error);
         return NextResponse.json(

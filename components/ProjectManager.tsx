@@ -54,6 +54,8 @@ const ProjectManager: React.FC<ProjectManagerProps> = ({
         const project1 = projects[currentIndex];
         const project2 = projects[newIndex];
 
+        if (project1.category !== project2.category) return;
+
         try {
             await Promise.all([
                 fetch(`/api/projects/${project1.id}`, {
@@ -129,6 +131,11 @@ const ProjectManager: React.FC<ProjectManagerProps> = ({
                         const processCount = processPhotoBlocks.length || project.processPhotos.length;
                         const mainThumbs = mainPhotoBlocks.length > 0 ? mainPhotoBlocks : project.mainPhotos;
                         const processThumbs = processPhotoBlocks.length > 0 ? processPhotoBlocks : project.processPhotos;
+                        const canMoveUp =
+                            index > 0 && projects[index - 1].category === project.category;
+                        const canMoveDown =
+                            index < projects.length - 1 &&
+                            projects[index + 1].category === project.category;
 
                         return (
                         <tr key={project.id} className="hover:bg-gray-50/80">
@@ -138,7 +145,7 @@ const ProjectManager: React.FC<ProjectManagerProps> = ({
                                     <div className="flex flex-col gap-1">
                                         <button
                                             onClick={() => handleReorder(project.id, "up")}
-                                            disabled={index === 0}
+                                            disabled={!canMoveUp}
                                             className="text-gray-400 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed"
                                             title="Move up"
                                         >
@@ -146,7 +153,7 @@ const ProjectManager: React.FC<ProjectManagerProps> = ({
                                         </button>
                                         <button
                                             onClick={() => handleReorder(project.id, "down")}
-                                            disabled={index === projects.length - 1}
+                                            disabled={!canMoveDown}
                                             className="text-gray-400 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed"
                                             title="Move down"
                                         >
