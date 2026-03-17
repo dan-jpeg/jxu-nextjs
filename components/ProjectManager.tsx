@@ -54,8 +54,6 @@ const ProjectManager: React.FC<ProjectManagerProps> = ({
         const project1 = projects[currentIndex];
         const project2 = projects[newIndex];
 
-        if (project1.category !== project2.category) return;
-
         try {
             await Promise.all([
                 fetch(`/api/projects/${project1.id}`, {
@@ -131,11 +129,8 @@ const ProjectManager: React.FC<ProjectManagerProps> = ({
                         const processCount = processPhotoBlocks.length || project.processPhotos.length;
                         const mainThumbs = mainPhotoBlocks.length > 0 ? mainPhotoBlocks : project.mainPhotos;
                         const processThumbs = processPhotoBlocks.length > 0 ? processPhotoBlocks : project.processPhotos;
-                        const canMoveUp =
-                            index > 0 && projects[index - 1].category === project.category;
-                        const canMoveDown =
-                            index < projects.length - 1 &&
-                            projects[index + 1].category === project.category;
+                        const canMoveUp = index > 0;
+                        const canMoveDown = index < projects.length - 1;
 
                         return (
                         <tr key={project.id} className="hover:bg-gray-50/80">

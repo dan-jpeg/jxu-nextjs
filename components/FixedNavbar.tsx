@@ -44,21 +44,9 @@ const FixedNavbar: React.FC<FixedNavbarProps> = ({ projects, currentProjectId, o
             router.push(`/archive/${projectId}`);
         };
 
-        const { personalProjects, workProjects, orderedProjects } = useMemo(() => {
+        const orderedProjects = useMemo(() => {
             const byOrder = (a: Project, b: Project) => a.order - b.order;
-
-            const personal = [...projects]
-                .filter((p) => p.category === 'personal')
-                .sort(byOrder);
-            const work = [...projects]
-                .filter((p) => p.category === 'work')
-                .sort(byOrder);
-
-            return {
-                personalProjects: personal,
-                workProjects: work,
-                orderedProjects: [...personal, ...work],
-            };
+            return [...projects].sort(byOrder);
         }, [projects]);
 
         // Detect which project is currently in view (only on archive page)
@@ -141,46 +129,22 @@ const FixedNavbar: React.FC<FixedNavbarProps> = ({ projects, currentProjectId, o
                         </span>
                     </button>
 
-                    {/* Personal Projects */}
-                    {personalProjects.length > 0 && (
+                    {orderedProjects.length > 0 && (
                         <div className="space-y-0 pl-4 mt-4">
-                            {personalProjects.map((project, index) => {
+                            {orderedProjects.map((project, index) => {
                                 const isActive = activeProjectId === project.id;
                                 return (
                                     <button
                                         key={project.id}
                                         onClick={() => handleProjectClick(project.id)}
                                         className={`block text-left italic transition-all hover:underline hover:underline-offset-4 group ${
-                                            isActive ? 'opacity-90 underline underline-offset-4' : 'opacity-30 hover:opacity-90'
+                                            isActive
+                                                ? 'opacity-90 underline underline-offset-4'
+                                                : 'opacity-30 hover:opacity-90'
                                         }`}
                                     >
                                         <span className="text-xs font-georgia inline-block w-24">
-                                            personal ({String(index + 1).padStart(2, '0')})
-                                        </span>
-                                        <span className="text-xs lowercase font-georgia">
-                                            {project.title}
-                                        </span>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    )}
-
-                    {/* Work Experience */}
-                    {workProjects.length > 0 && (
-                        <div className="space-y-0 pl-4">
-                            {workProjects.map((project, index) => {
-                                const isActive = activeProjectId === project.id;
-                                return (
-                                    <button
-                                        key={project.id}
-                                        onClick={() => handleProjectClick(project.id)}
-                                        className={`block text-left italic transition-all hover:underline hover:underline-offset-4 group ${
-                                            isActive ? 'opacity-90 underline underline-offset-4' : 'opacity-30 hover:opacity-90'
-                                        }`}
-                                    >
-                                        <span className="text-xs font-georgia inline-block w-24">
-                                            work ({String(personalProjects.length + index + 1).padStart(2, '0')})
+                                            {project.category} ({String(index + 1).padStart(2, '0')})
                                         </span>
                                         <span className="text-xs lowercase font-georgia">
                                             {project.title}
@@ -225,8 +189,7 @@ const FixedNavbar: React.FC<FixedNavbarProps> = ({ projects, currentProjectId, o
                         </span>
                     </button>
 
-                    <div className="text-xs mb-2">personal projects</div>
-                    {personalProjects.map((project, index) => (
+                    {orderedProjects.map((project, index) => (
                         <button
                             key={project.id}
                             onClick={() => handleProjectClick(project.id)}
@@ -235,21 +198,8 @@ const FixedNavbar: React.FC<FixedNavbarProps> = ({ projects, currentProjectId, o
                             <span className="text-xs font-georgia inline-block w-8">
                                 ({String(index + 1).padStart(2, '0')})
                             </span>
-                            <span className="text-xs lowercase font-georgia">
-                                {project.title}
-                            </span>
-                        </button>
-                    ))}
-
-                    <div className="text-xs mt-3 mb-2">work experience</div>
-                    {workProjects.map((project, index) => (
-                        <button
-                            key={project.id}
-                            onClick={() => handleProjectClick(project.id)}
-                            className="block text-left italic transition-all hover:underline hover:underline-offset-4 group"
-                        >
-                            <span className="text-xs font-georgia inline-block w-8">
-                                ({String(index + 1).padStart(2, '0')})
+                            <span className="text-[10px] font-georgia inline-block w-16 opacity-60">
+                                {project.category}
                             </span>
                             <span className="text-xs lowercase font-georgia">
                                 {project.title}

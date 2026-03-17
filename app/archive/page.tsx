@@ -28,16 +28,7 @@ const ArchivePage = () => {
         fetchProjects();
     }, []);
 
-    // Group and sort projects
-    const personalProjects = projects
-        .filter(p => p.category === 'personal')
-        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-
-    const workProjects = projects
-        .filter(p => p.category === 'work')
-        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-
-    const orderedProjects = [...personalProjects, ...workProjects];
+    const orderedProjects = [...projects].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
     useEffect(() => {
         if (loading) return;

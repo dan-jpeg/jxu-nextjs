@@ -38,13 +38,7 @@ export async function GET() {
             };
         });
 
-        const categoryRank = (value: Project['category']) =>
-            value === 'personal' ? 0 : 1;
-
         projects.sort((a, b) => {
-            const categoryDiff = categoryRank(a.category) - categoryRank(b.category);
-            if (categoryDiff !== 0) return categoryDiff;
-
             const orderDiff = a.order - b.order;
             if (orderDiff !== 0) return orderDiff;
 
