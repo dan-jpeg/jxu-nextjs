@@ -83,74 +83,31 @@ export default function ProjectDetailPage({ params }: PageProps) {
                     )}
                 </div>
 
-                {/* Main Content Blocks */}
-                {project.mainContent && project.mainContent.length > 0 ? (
-                    <div className="mb-16">
-                        <ContentBlockRenderer
-                            blocks={project.mainContent}
-                        />
-                    </div>
-                ) : (
-                    /* Fallback to legacy mainPhotos if no content blocks */
-                    project.mainPhotos && project.mainPhotos.length > 0 ? (
-                        <div className="space-y-2 mb-16">
-
-                            {project.mainPhotos
-                                .sort((a, b) => a.order - b.order)
-                                .map((photo, idx) => (
-                                    <div key={idx} className="space-y-2">
-                                        {/* Caption Above */}
-                                        {photo.caption?.position === 'above' && (
-                                            <p className="text-xs italic text-gray-500">
-                                                {photo.caption.text}
-                                            </p>
-                                        )}
-
-                                        {/* Photo */}
-                                        <img
-                                            src={photo.url}
-                                            alt={`${project.title} - ${idx + 1}`}
-                                            className="w-full h-auto"
-                                        />
-
-                                        {/* Caption Below */}
-                                        {photo.caption?.position === 'below' && (
-                                            <p className="text-xs italic text-gray-500">
-                                                {photo.caption.text}
-                                            </p>
-                                        )}
-                                    </div>
-                                ))}
-                        </div>
-                    ) : (
-                        <div className="text-xs bg-red-100 p-2 mb-4">
-                            ⚠️ No content found (neither mainContent nor mainPhotos)
-                        </div>
-                    )
-                )}
-
-                {/* Process Content Blocks (no heading/divider) */}
+                {/* Process Photos only */}
                 {project.processContent && project.processContent.length > 0 ? (
                     <div className="space-y-8 pt-8">
-                        <ContentBlockRenderer blocks={project.processContent} />
+                        <ContentBlockRenderer
+                            blocks={project.processContent.filter(
+                                (block) => block.type === "photo"
+                            )}
+                        />
+                    </div>
+                ) : project.processPhotos && project.processPhotos.length > 0 ? (
+                    <div className="space-y-8 pt-8">
+                        {project.processPhotos
+                            .sort((a, b) => a.order - b.order)
+                            .map((photo, idx) => (
+                                <div key={idx} className="space-y-1">
+                                    <img
+                                        src={photo.url}
+                                        alt={`${project.title} process - ${idx + 1}`}
+                                        className="w-full h-auto"
+                                    />
+                                </div>
+                            ))}
                     </div>
                 ) : (
-                    /* Fallback to legacy processPhotos if no content blocks */
-                    project.processPhotos && project.processPhotos.length > 0 && (
-                        <div className="space-y-8 pt-8">
-                            {project.processPhotos
-                                .sort((a, b) => a.order - b.order)
-                                .map((photo, idx) => (
-                                    <div key={idx} className="space-y-1">
-                                        <img
-                                            src={photo.url}
-                                            alt={`${project.title} process - ${idx + 1}`}
-                                            className="w-full h-auto"
-                                        />
-                                    </div>
-                                ))}
-                        </div>
-                    )
+                    <div className="text-xs text-gray-400 italic">no process photos</div>
                 )}
             </div>
         </div>
