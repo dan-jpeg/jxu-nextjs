@@ -59,7 +59,7 @@ const ThreeColumnLayout: React.FC = () => {
                 </div>
                 <div className="text-center">
                     <a
-                        href="/jinnixu_apr2025.pdf"
+                        href="/jinnixu_03_26.pdf"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-neutral-700 font-normal text-xs hover:italic hover:text-neutral-300"
