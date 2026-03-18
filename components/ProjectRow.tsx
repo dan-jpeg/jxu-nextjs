@@ -34,9 +34,9 @@ const ProjectRow: React.FC<ProjectRowProps> = ({
 
     return (
         <div className="w-full h-full flex flex-col items-center justify-center z-10 px-12">
-            {/* Single Figure label - centered above entire row */}
+            {/* Single Figure label - centered above entire row (visible only on md and up) */}
             {projectNumber && (
-                <div className="text-center mb-6">
+                <div className="hidden md:block text-center mb-6">
                     <p className="text-xs lowercase font-helvetica">
                         {project.category === 'work' ? 'work' : 'project'} ({String(projectNumber).padStart(2, '0')})
                     </p>
@@ -91,6 +91,15 @@ const ProjectRow: React.FC<ProjectRowProps> = ({
                                 </div>
                             ))}
                     </div>
+                </div>
+            )}
+
+            {/* Single Figure label - centered below entire row (visible only on small screens) */}
+            {projectNumber && (
+                <div className="md:hidden text-center mt-6">
+                    <p className="text-xs lowercase font-helvetica">
+                        {project.category === 'work' ? 'work' : 'project'} ({String(projectNumber).padStart(2, '0')})
+                    </p>
                 </div>
             )}
 
