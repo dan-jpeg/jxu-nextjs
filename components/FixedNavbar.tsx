@@ -41,7 +41,17 @@ const FixedNavbar: React.FC<FixedNavbarProps> = ({ projects, currentProjectId, o
         };
 
         const handleProjectClick = (projectId: string) => {
-            router.push(`/archive/${projectId}`);
+            if (isArchivePage) {
+                if (activeProjectId === projectId) {
+                    // Already scrolled to this project — navigate into it
+                    router.push(`/archive/${projectId}`);
+                } else {
+                    // First click: scroll to the project
+                    scrollToProject(projectId);
+                }
+            } else {
+                router.push(`/archive/${projectId}`);
+            }
         };
 
         const orderedProjects = useMemo(() => {
@@ -189,23 +199,30 @@ const FixedNavbar: React.FC<FixedNavbarProps> = ({ projects, currentProjectId, o
                         </span>
                     </button>
 
-                    {orderedProjects.map((project, index) => (
-                        <button
-                            key={project.id}
-                            onClick={() => handleProjectClick(project.id)}
-                            className="block text-left italic transition-all hover:underline hover:underline-offset-4 group"
-                        >
-                            <span className="text-xs font-georgia inline-block w-8">
-                                ({String(index + 1).padStart(2, '0')})
-                            </span>
-                            <span className="text-[10px] font-georgia inline-block w-16 opacity-60">
-                                {project.category}
-                            </span>
-                            <span className="text-xs lowercase font-georgia">
-                                {project.title}
-                            </span>
-                        </button>
-                    ))}
+                    {orderedProjects.map((project, index) => {
+                        const isActive = activeProjectId === project.id;
+                        return (
+                            <button
+                                key={project.id}
+                                onClick={() => handleProjectClick(project.id)}
+                                className={`block text-left italic transition-all hover:underline hover:underline-offset-4 group ${
+                                    isActive
+                                        ? 'opacity-90 underline underline-offset-4'
+                                        : 'opacity-30 hover:opacity-90'
+                                }`}
+                            >
+                                <span className="text-xs font-georgia inline-block w-8">
+                                    ({String(index + 1).padStart(2, '0')})
+                                </span>
+                                <span className="text-[10px] font-georgia inline-block w-16 opacity-60">
+                                    {project.category}
+                                </span>
+                                <span className="text-xs lowercase font-georgia">
+                                    {project.title}
+                                </span>
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
         );
