@@ -37,6 +37,16 @@ const FixedNavbar: React.FC<FixedNavbarProps> = ({ projects, currentProjectId, o
                     }
                     setLastClickedId(projectId);
                 }
+            } else if (isProjectDetailPage) {
+                if (lastClickedId === projectId) {
+                    // Second click — navigate into the project
+                    router.push(`/archive/${projectId}`);
+                    setLastClickedId(null);
+                } else {
+                    // First click — go back to archive and scroll to project
+                    router.push(`/archive?scrollTo=${projectId}`);
+                    setLastClickedId(projectId);
+                }
             } else {
                 router.push(`/archive/${projectId}`);
             }

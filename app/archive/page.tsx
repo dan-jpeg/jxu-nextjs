@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import ProjectRow from "@/components/ProjectRow";
 import type { Project } from "@/lib/types";
 import FixedNavbar from "@/components/FixedNavbar";
@@ -11,6 +11,7 @@ const ArchivePage = () => {
     const [projects, setProjects] = useState<Project[]>([]);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
+    const searchParams = useSearchParams();
 
     const fetchProjects = async () => {
         try {
@@ -29,6 +30,17 @@ const ArchivePage = () => {
     }, []);
 
     const orderedProjects = [...projects].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
+    useEffect(() => {
+        if (loading) return;
+        const scrollTo = searchParams.get('scrollTo');
+        if (!scrollTo) return;
+        const scrollContainer = document.getElementById('archive-scroll-container');
+        const element = document.getElementById(`project-${scrollTo}`);
+        if (element && scrollContainer) {
+            scrollContainer.scrollTo({ top: element.offsetTop, behavior: 'smooth' });
+        }
+    }, [loading, searchParams]);
 
     useEffect(() => {
         if (loading) return;
