@@ -1,17 +1,33 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import ProjectRow from "@/components/ProjectRow";
 import type { Project } from "@/lib/types";
 import FixedNavbar from "@/components/FixedNavbar";
 import FixedTitleBar from "@/components/FixedTitleBar";
 
+const ScrollToProject = ({ loading }: { loading: boolean }) => {
+    const searchParams = useSearchParams();
+
+    useEffect(() => {
+        if (loading) return;
+        const scrollTo = searchParams.get('scrollTo');
+        if (!scrollTo) return;
+        const scrollContainer = document.getElementById('archive-scroll-container');
+        const element = document.getElementById(`project-${scrollTo}`);
+        if (element && scrollContainer) {
+            scrollContainer.scrollTo({ top: element.offsetTop, behavior: 'smooth' });
+        }
+    }, [loading, searchParams]);
+
+    return null;
+};
+
 const ArchivePage = () => {
     const [projects, setProjects] = useState<Project[]>([]);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
-    const searchParams = useSearchParams();
 
     const fetchProjects = async () => {
         try {
@@ -30,17 +46,6 @@ const ArchivePage = () => {
     }, []);
 
     const orderedProjects = [...projects].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-
-    useEffect(() => {
-        if (loading) return;
-        const scrollTo = searchParams.get('scrollTo');
-        if (!scrollTo) return;
-        const scrollContainer = document.getElementById('archive-scroll-container');
-        const element = document.getElementById(`project-${scrollTo}`);
-        if (element && scrollContainer) {
-            scrollContainer.scrollTo({ top: element.offsetTop, behavior: 'smooth' });
-        }
-    }, [loading, searchParams]);
 
     useEffect(() => {
         if (loading) return;
@@ -114,6 +119,9 @@ const ArchivePage = () => {
 
     return (
         <div className="relative w-full bg-white">
+            <Suspense>
+                <ScrollToProject loading={loading} />
+            </Suspense>
             <FixedTitleBar />
             <FixedNavbar projects={orderedProjects}/>
 
