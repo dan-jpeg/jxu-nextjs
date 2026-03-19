@@ -14,6 +14,7 @@ interface FixedNavbarProps {
 
 const FixedNavbar: React.FC<FixedNavbarProps> = ({ projects, currentProjectId, onArchiveClick }) => {
     const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
+    const [lastClickedId, setLastClickedId] = useState<string | null>(null);
     const pathname = usePathname();
     const router = useRouter();
     const isArchivePage = pathname === '/archive';
@@ -21,27 +22,24 @@ const FixedNavbar: React.FC<FixedNavbarProps> = ({ projects, currentProjectId, o
 
     // If projects are provided
     if (projects && projects.length > 0) {
-        // For project detail pages - navigate to /archive/[id]
-        const navigateToProject = (projectId: string) => {
-            router.push(`/archive/${projectId}`);
-        };
-
-        // For archive page - scroll to project
-        const scrollToProject = (projectId: string) => {
-            const scrollContainer = document.getElementById('archive-scroll-container');
-            const element = document.getElementById(`project-${projectId}`);
-
-            if (element && scrollContainer) {
-                const elementTop = element.offsetTop;
-                scrollContainer.scrollTo({
-                    top: elementTop,
-                    behavior: 'smooth'
-                });
-            }
-        };
-
         const handleProjectClick = (projectId: string) => {
-            router.push(`/archive/${projectId}`);
+            if (isArchivePage) {
+                if (lastClickedId === projectId) {
+                    // Second click on same project — navigate into it
+                    router.push(`/archive/${projectId}`);
+                    setLastClickedId(null);
+                } else {
+                    // First click: scroll to the project
+                    const scrollContainer = document.getElementById('archive-scroll-container');
+                    const element = document.getElementById(`project-${projectId}`);
+                    if (element && scrollContainer) {
+                        scrollContainer.scrollTo({ top: element.offsetTop, behavior: 'smooth' });
+                    }
+                    setLastClickedId(projectId);
+                }
+            } else {
+                router.push(`/archive/${projectId}`);
+            }
         };
 
         const orderedProjects = useMemo(() => {
@@ -49,7 +47,7 @@ const FixedNavbar: React.FC<FixedNavbarProps> = ({ projects, currentProjectId, o
             return [...projects].sort(byOrder);
         }, [projects]);
 
-        // Detect which project is currently in view (only on archive page)
+        // Detect which project is currently in view (works on both desktop and mobile)
         useEffect(() => {
             if (isProjectDetailPage && currentProjectId) {
                 setActiveProjectId(currentProjectId);
@@ -61,36 +59,24 @@ const FixedNavbar: React.FC<FixedNavbarProps> = ({ projects, currentProjectId, o
             const scrollContainer = document.getElementById('archive-scroll-container');
             if (!scrollContainer) return;
 
-            const handleScroll = () => {
-                const sections = orderedProjects.map((p) => ({
-                    id: p.id,
-                    element: document.getElementById(`project-${p.id}`),
-                }));
+            const observer = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach((entry) => {
+                        if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+                            const id = entry.target.id.replace('project-', '');
+                            setActiveProjectId(id);
+                        }
+                    });
+                },
+                { root: scrollContainer, threshold: 0.5 }
+            );
 
-                const containerRect = scrollContainer.getBoundingClientRect();
-                const viewportCenter = containerRect.top + containerRect.height / 2;
+            orderedProjects.forEach((p) => {
+                const el = document.getElementById(`project-${p.id}`);
+                if (el) observer.observe(el);
+            });
 
-                let closestDistance = Infinity;
-                let currentId: string | null = null;
-
-                sections.forEach(({ id, element }) => {
-                    if (!element) return;
-                    const rect = element.getBoundingClientRect();
-                    const elementCenter = rect.top + rect.height / 2;
-                    const distance = Math.abs(elementCenter - viewportCenter);
-
-                    if (distance < closestDistance) {
-                        closestDistance = distance;
-                        currentId = id;
-                    }
-                });
-
-                if (currentId) setActiveProjectId(currentId);
-            };
-
-            handleScroll();
-            scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
-            return () => scrollContainer.removeEventListener('scroll', handleScroll);
+            return () => observer.disconnect();
         }, [orderedProjects, isArchivePage, isProjectDetailPage, currentProjectId]);
 
         return (
@@ -189,23 +175,30 @@ const FixedNavbar: React.FC<FixedNavbarProps> = ({ projects, currentProjectId, o
                         </span>
                     </button>
 
-                    {orderedProjects.map((project, index) => (
-                        <button
-                            key={project.id}
-                            onClick={() => handleProjectClick(project.id)}
-                            className="block text-left italic transition-all hover:underline hover:underline-offset-4 group"
-                        >
-                            <span className="text-xs font-georgia inline-block w-8">
-                                ({String(index + 1).padStart(2, '0')})
-                            </span>
-                            <span className="text-[10px] font-georgia inline-block w-16 opacity-60">
-                                {project.category}
-                            </span>
-                            <span className="text-xs lowercase font-georgia">
-                                {project.title}
-                            </span>
-                        </button>
-                    ))}
+                    {orderedProjects.map((project, index) => {
+                        const isActive = activeProjectId === project.id;
+                        return (
+                            <button
+                                key={project.id}
+                                onClick={() => handleProjectClick(project.id)}
+                                className={`block text-left italic transition-all hover:underline hover:underline-offset-4 group ${
+                                    isActive
+                                        ? 'opacity-90 underline underline-offset-4'
+                                        : 'opacity-30 hover:opacity-90'
+                                }`}
+                            >
+                                <span className="text-xs font-georgia inline-block w-8">
+                                    ({String(index + 1).padStart(2, '0')})
+                                </span>
+                                <span className="text-[10px] font-georgia inline-block w-16 opacity-60">
+                                    {project.category}
+                                </span>
+                                <span className="text-xs lowercase font-georgia">
+                                    {project.title}
+                                </span>
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
         );
